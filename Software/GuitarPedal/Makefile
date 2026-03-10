@@ -45,6 +45,13 @@ CPP_SOURCES += Effect-Modules/scifi_module.cpp
 CPP_SOURCES += Effect-Modules/scope_module.cpp
 CPP_SOURCES += Effect-Modules/spectral_delay_module.cpp
 CPP_SOURCES += Effect-Modules/tuner_module.cpp
+CPP_SOURCES += Effect-Modules/duck_compressor_module.cpp
+CPP_SOURCES += Effect-Modules/SimpleCompressor/SimpleComp.cpp
+CPP_SOURCES += Effect-Modules/SimpleCompressor/SimpleEnvelope.cpp
+CPP_SOURCES += Effect-Modules/SimpleCompressor/SimpleLimit.cpp
+CPP_SOURCES += Effect-Modules/SimpleCompressor/SimpleGate.cpp
+
+
 #CPP_SOURCES += Effect-Modules/reverb_delay_module.cpp
 
 # Keyboard oriented modules
