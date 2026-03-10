@@ -129,6 +129,9 @@ If you want to use built in flash memory only, you _can_, but it severely limits
 
 Plug your guitar into the Input and connect the Output to your amp.
 
+- Right button.
+  Turn effect on/off
+- 
 ### 6. Enjoy!!!
 
 ## Using pre-compiled releases
@@ -143,6 +146,12 @@ Plug your guitar into the Input and connect the Output to your amp.
       1. Within 5 seconds single press the BOOT button on the daisy (this locks it into bootloader mode so that you can take your time to do the following steps instead of trying to do it all within 5 seconds)
       1. Use File Upload to select the .bin file
       1. Press Flash
+
+## Operating 125B Pedal 
+
+This section is most accurate for 125b version
+
+
 
 ## Software Updates
 

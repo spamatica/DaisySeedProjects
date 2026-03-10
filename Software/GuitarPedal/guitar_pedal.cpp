@@ -116,26 +116,8 @@ CpuLoadMeter cpuLoadMeter;
 
 void SetActiveEffect(int effectID);
 
-static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size) {
-    cpuLoadMeter.OnBlockStart();
-
-    // Process Audio
-    float inputLeft;
-    float inputRight;
-
-    // Default LEDs are off
-    float led1Brightness = 0.0f;
-    float led2Brightness = 0.0f;
-
-    // Handle Inputs
-    hardware.ProcessAnalogControls();
-    hardware.ProcessDigitalControls();
-    guitarPedalUI.GenerateUIEvents();
-
-    // Get a handle to the persitance storage settings
-    Settings &settings = storage.GetSettings();
-
-    // Process the Pots
+void processPots(size_t size)
+{
     float knobValueRaw;
 
     for (int i = 0; i < hardware.GetKnobCount(); i++) {
@@ -182,7 +164,10 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
             }
         }
     }
+}
 
+void processFootswitches(size_t size, Settings &settings)
+{
     // Store the previous value of the effect bypass so that we can determine if
     // we need to perform a toggle at the end of processing the switches
     bool oldEffectOn = effectOn;
@@ -360,6 +345,45 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
             samplesTilBypassToggle = bypassToggleTransitionTimeInSamples;
         }
     }
+}
+
+void updateLeds(float led1Brightness, float led2Brightness)
+{
+    // Override LEDs if we are saving the current settings
+    if (guitarPedalUI.IsShowingSavingSettingsScreen()) {
+        led1Brightness = 1.0f;
+        led2Brightness = 1.0f;
+    }
+
+    // Handle LEDs
+    hardware.SetLed(0, led1Brightness);
+    hardware.SetLed(1, led2Brightness);
+    hardware.UpdateLeds();
+}
+
+static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size) {
+    cpuLoadMeter.OnBlockStart();
+
+    // Process Audio
+    float inputLeft;
+    float inputRight;
+
+    // Default LEDs are off
+    float led1Brightness = 0.0f;
+    float led2Brightness = 0.0f;
+
+    // Handle Inputs
+    hardware.ProcessAnalogControls();
+    hardware.ProcessDigitalControls();
+    guitarPedalUI.GenerateUIEvents();
+
+    // Get a handle to the persitance storage settings
+    Settings &settings = storage.GetSettings();
+
+    // Process the Pots
+    processPots(size);
+
+    processFootswitches(size, settings);
 
     for (size_t i = 0; i < size; i++) {
         if (isCrossFading) {
@@ -438,16 +462,7 @@ static void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer
         out[1][i] = crossFaderRight.Process(crossFadeSourceRight, crossFadeTargetRight);
     }
 
-    // Override LEDs if we are saving the current settings
-    if (guitarPedalUI.IsShowingSavingSettingsScreen()) {
-        led1Brightness = 1.0f;
-        led2Brightness = 1.0f;
-    }
-
-    // Handle LEDs
-    hardware.SetLed(0, led1Brightness);
-    hardware.SetLed(1, led2Brightness);
-    hardware.UpdateLeds();
+    updateLeds(led1Brightness, led2Brightness);
 
     cpuLoadMeter.OnBlockEnd();
 }
@@ -560,6 +575,7 @@ void HandleMidiMessage(MidiEvent m) {
 }
 
 int main(void) {
+
     const size_t blockSize = 48;
     const bool boost = true; // true enables cpu boost (480Mhz instead of 400Mhz)
 
