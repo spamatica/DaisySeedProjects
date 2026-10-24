@@ -902,9 +902,6 @@ static void drawHeapMessage(const char *line1, const char *line2, const char *li
 
 int main(void) {
 
-    // Audio settings. Venus (the only effect in this build) is heavy: each of its 4096-point FFT stages has to fit inside one block, which a 1 ms block (48
-    // samples) does not allow. 256 samples is 5.3 ms at 48 kHz. (The original FunBox pedal runs at 32 kHz with 256 samples; that also works and takes less CPU.)
-    // The other effects were written and measured at 48 kHz with 48-sample blocks: set kAudioBlockSize back to 48 when they are enabled again.
     const size_t blockSize = kAudioBlockSize;
     const bool boost = true; // true enables cpu boost (480Mhz instead of 400Mhz)
 
