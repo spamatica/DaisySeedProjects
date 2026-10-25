@@ -66,7 +66,7 @@ void InitPersistantStorage() {
     defaultSettings.globalEffectOn = false;
     defaultSettings.globalAutoSave = false;
     defaultSettings.globalShowDebug = false;
-    defaultSettings.globalLockKnobs = true;
+    defaultSettings.globalLockKnobs = false;
     defaultSettings.globalTrails = true;
     defaultSettings.globalInputGainDb = 0.0f;
     defaultSettings.globalOutputGainDb = 0.0f;

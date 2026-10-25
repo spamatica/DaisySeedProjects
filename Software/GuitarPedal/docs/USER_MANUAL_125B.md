@@ -6,13 +6,13 @@ This is a DIY pedal project, not a finished product. You build the PCB-based har
 
 - Follow the [125B hardware build guide](../../../Hardware/GuitarPedal125b/docs/README.md) for PCB manufacture, parts, assembly, and enclosure details. The guide includes ready-to-order board files and describes the additional parts and soldering required.
 - Install the toolchain and dependencies, then follow the [software build and deployment instructions](../README.md#4-build-and-deploy-the-code). The 125B is the default hardware target; check `guitar_pedal.cpp` if you have changed variants.
-- Choose the installed effects and their order with `./effects_config.sh`, as described in [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md), then build and flash, per the instruction in [SETUP.md](SETUP.md).
+- Choose the installed effects and their order with `./pedal_setup`, as described in [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md), then build and flash, per the instruction in [SETUP.md](SETUP.md).
 
 ## Effect Chains
 
 There is now support for combining several effects into an effect chain, meaning you can enable more than one effect at the same time.
 
-By defining an `EffectChain` (in `./effects_config.sh`, press `c`); it appears as one selectable effect and processes its child effects in sequence. Each effect in a chain can be switched on and off on its own, and with the chain's **Switches** parameter two of them can be put on the footswitches, like two pedals on a board (see [Footswitches and LEDs](#footswitches-and-leds)). Keep an eye on CPU headroom: a large chain can exceed the processor's capacity, and some modules have restrictions on chaining. 
+By defining an `EffectChain` (in `./pedal_setup`, press `c`); it appears as one selectable effect and processes its child effects in sequence. Each effect in a chain can be switched on and off on its own, and with the chain's **Switches** parameter two of them can be put on the footswitches, like two pedals on a board (see [Footswitches and LEDs](#footswitches-and-leds)). Keep an eye on CPU headroom: a large chain can exceed the processor's capacity, and some modules have restrictions on chaining. 
 
 ## Connections
 
@@ -69,7 +69,7 @@ In the settings menu a number of global options can be configured.
 - **MIDI effect and preset recall:** A plain Program Change still selects an effect by its zero-based position in the firmware's effect list. To select both an effect and one of its saved presets, send Bank Select MSB (CC0), Bank Select LSB (CC32), then Program Change. The pedal uses the combined bank number to select the effect and the Program Change value to select that effect's saved preset. Bank 0 is reserved for legacy behavior, so the effect's bank number is its zero-based effect index plus one. For example, effect 4, preset 2 uses `CC0=0`, `CC32=5`, `PC=2`. A bank number of 5 is encoded as MSB 0 and LSB 5. Some controller editors display values as 1-128; the transmitted MIDI values are 0-127. The bank is consumed by the next Program Change, so configure the switcher to send the bank and Program Change with each recall. If the bank/effect or preset does not exist, the selection is ignored or the effect is selected without loading a preset, respectively.
 - **Reserved MIDI CCs:** CC0 and CC32 are used for Bank Select and are not available for effect parameters. Multi Delay Tap Mode now uses CC33 instead of CC32.
 - **Auto-save:** After parameter changes stop for five seconds, saves that effect's settings to Preset 0. This overwrites Preset 0; turn it off if you use that preset for a manual patch, or want the pedal to always return to a saved state on startup.
-- **Lock Knobs:** Ignores the knobs, so that parameters are only changed from the display and a bumped knob changes nothing. Currently on by default.
+- **Lock Knobs:** Ignores the knobs, so that parameters are only changed from the display and a bumped knob changes nothing. Off by default (the knobs work); the setting is saved, so a pedal that already has saved settings keeps its current choice.
 - **Show Debug:** Draws the CPU load (average/peak %) and the input and output levels on the effect screen, along with the heap use, to help calibrate levels and check the load of an effect. Off by default.
 - **Trails:** Lets delay and reverb tails ring out after the effect is turned off instead of cutting them. It does not apply with True Bypass, and the length of the tail depends on the effect. On by default.
 - **In Gain:** Gain in dB (-24 to +24, in steps of 0.5; the encoder's coarse step is 3 dB) applied to the input before it reaches the effect and the dry signal, to calibrate the pedal to your instrument or to the level of the rest of the rig. The input level readout of Show Debug shows the level after this gain.

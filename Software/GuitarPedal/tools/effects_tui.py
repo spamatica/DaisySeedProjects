@@ -1,8 +1,9 @@
-"""The interactive, full-screen effect selection of tools/effects.py (curses; Python's standard library only).
+"""The interactive, full-screen tool of tools/effects.py (curses; Python's standard library only). It starts with a menu: Configure effects (the effect selection below)
+and Options (a placeholder for now). q or Esc leaves a menu.
 
   Up/Down (or k/j), PgUp/PgDn, Home/End   move in the list of effects
   Space                                   select / deselect the effect under the cursor
-  s                                       save (writes effects.config and generates the build files)
+  s                                       save (writes effects.config and generates the build files; asks first if the selection does not fit)
   p                                       start from a preset
   a                                       allow / forbid the GPL-3.0 effects (ALLOW_GPL)
   c                                       effect chains: several effects combined into one menu entry
@@ -10,7 +11,7 @@
   i                                       about the effect under the cursor: origin, copyright lines, who committed it
   r                                       the memory budget in detail
   h                                       help
-  q                                       quit (asks about unsaved changes)
+  q or Esc                                back to the start menu (asks about unsaved changes)
 
 The state and what it computes (`Selector`) do not touch the terminal, so it is tested without one (tests/test_effects_tui.py).
 """
@@ -25,7 +26,7 @@ HELP = [
     "",
     "  Up / Down, k / j     move          PgUp / PgDn, Home / End   jump",
     "  Space                select or deselect the effect (a GPL effect asks first to allow the GPL effects)",
-    "  s                    save: writes effects.config and the generated build files",
+    "  s                    save: writes effects.config and the generated build files (asks first if it does not fit)",
     "  p                    start from a preset (configs/*.config, everything)",
     "  a                    allow / forbid the GPL-3.0 effects (ALLOW_GPL)",
     "  c                    effect chains: several effects combined into one menu entry",
@@ -33,7 +34,7 @@ HELP = [
     "  x                    clear everything (no effects, no chains, GPL forbidden), to start from scratch",
     "  i                    about the effect: origin, copyright lines, who committed it",
     "  r                    the memory budget in detail",
-    "  h                    this help               q   quit",
+    "  h                    this help               q or Esc   back to the start menu",
     "",
     "The status bar is an estimate of what the selection needs:",
     "  DTCM and RAM_D2 are where the effects' variables and the heap are, Code is the",
@@ -207,6 +208,14 @@ class Selector:
         return lines
 
     # -- saving
+    def misfit(self):
+        """Why the tool thinks the selection will not work on the pedal (the memory regions it overflows); empty if it fits or is only tight.
+        It is a warning, not an error: the selection can still be saved and tried."""
+        if self.problems():
+            return []
+        verdict, why = self.usage()[2:]
+        return why if verdict == "does not fit" else []
+
     def save(self):
         problems = self.problems()
         if problems:
@@ -217,6 +226,8 @@ class Selector:
         self.fx.generate(quiet=True)
         self.dirty = False
         self.message = "saved: effects.config, chains.json and the generated build files"
+        if self.misfit():
+            self.message += " (it may not fit on the pedal)"
         return True
 
 
@@ -753,10 +764,21 @@ def ask_save(stdscr):
     return _popup(stdscr, ["Save the changes?", "", "  y  save and quit     n  quit without saving     Esc  keep editing"], "Unsaved changes")
 
 
-def loop(stdscr, fx):
-    curses.curs_set(0)
-    stdscr.keypad(True)
-    colors = _init_colors()
+def save_selection(stdscr, sel):
+    """Saves; when the tool thinks the selection will not work on the pedal it asks first, and the user can try it anyway."""
+    why = sel.misfit()
+    if why:
+        answer = _popup(stdscr, ["The tool thinks this selection will not work on the pedal:", ""] + ["  " + w for w in why] +
+                        ["", "It may not boot (the heap is unchecked) or may not link.", "",
+                         "  y  save and try it anyway     any other key  do not save"], "May not work")
+        if answer not in (ord("y"), ord("Y")):
+            sel.message = "not saved"
+            return False
+    return sel.save()
+
+
+def effects_screen(stdscr, fx, colors):
+    """Configure effects: the list of effects. Returns to the caller (the start menu) on quit."""
     sel = Selector(fx)
     while True:
         draw(stdscr, sel, colors)
@@ -787,7 +809,7 @@ def loop(stdscr, fx):
             else:
                 sel.toggle()
         elif key == ord("s"):
-            sel.save()
+            save_selection(stdscr, sel)
         elif key == ord("a"):
             sel.toggle_gpl()
         elif key == ord("p"):
@@ -809,17 +831,53 @@ def loop(stdscr, fx):
             _popup(stdscr, sel.report_lines(), "Memory budget")
         elif key in (ord("h"), ord("?")):
             _popup(stdscr, HELP, "Help")
-        elif key == ord("q"):
+        elif key in (ord("q"), 27):
             if not sel.dirty:
                 return
             answer = ask_save(stdscr)
             if answer in (ord("y"), ord("Y")):
-                if sel.save():
+                if save_selection(stdscr, sel):
                     return
             elif answer in (ord("n"), ord("N")):
                 return
         elif key == curses.KEY_RESIZE:
             pass
+
+
+def menu(stdscr, title, items, hint=""):
+    """A full-screen menu of (label, action) items. Enter runs the action of the item under the cursor; Esc or q leaves the menu."""
+    pos = 0
+    while True:
+        stdscr.erase()
+        h, w = stdscr.getmaxyx()
+        _put(stdscr, 0, 1, title, curses.A_BOLD)
+        for i, (label, _) in enumerate(items):
+            _put(stdscr, 2 + i, 2, ("> " if i == pos else "  ") + label, curses.A_REVERSE if i == pos else 0)
+        _put(stdscr, h - 1, 1, hint)
+        stdscr.refresh()
+        key = stdscr.getch()
+        if key in (curses.KEY_UP, ord("k")):
+            pos = max(0, pos - 1)
+        elif key in (curses.KEY_DOWN, ord("j")):
+            pos = min(len(items) - 1, pos + 1)
+        elif key in (10, 13, curses.KEY_ENTER):
+            if items[pos][1]() == "back":
+                return
+        elif key in (27, ord("q")):
+            return
+
+
+def options_screen(stdscr):
+    """Placeholder for the options of the tool that will come."""
+    menu(stdscr, "Options", [("Back", lambda: "back")], "Enter: back   Esc: back")
+
+
+def loop(stdscr, fx):
+    curses.curs_set(0)
+    stdscr.keypad(True)
+    colors = _init_colors()
+    menu(stdscr, "Pedal setup", [("Configure effects", lambda: effects_screen(stdscr, fx, colors)),
+                                 ("Options", lambda: options_screen(stdscr))], "Up/Down: move   Enter: select   q: quit")
 
 
 def run(fx):

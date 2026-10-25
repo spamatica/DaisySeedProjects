@@ -85,6 +85,14 @@ class SelectorTest(unittest.TestCase):
         self.assertEqual(sev, 2, text)
         self.assertTrue("does NOT fit" in text or "cannot be built" in text)
 
+    def test_a_selection_that_does_not_fit_is_a_warning_not_an_error(self):
+        self.assertEqual(self.sel.misfit(), [])
+        self.sel.load_preset("everything")
+        self.assertEqual(self.sel.problems(), [])
+        self.assertTrue(self.sel.misfit())
+        self.assertTrue(self.sel.save())  # the dialog of the screen asks first; the state itself saves
+        self.assertIn("may not fit", self.sel.message)
+
     def test_gpl_needs_allow_gpl_and_cannot_be_saved_without(self):
         self.sel.toggle("funbox-earth")
         self.assertTrue(self.sel.problems())
@@ -380,8 +388,11 @@ class ScreenTest(unittest.TestCase):
                         return
 
         drain(0.8)
-        for k in keys:
-            os.write(master, k)
+        for k in [b"\r", *keys, b"q"]:  # Enter: Configure effects (the first item of the start menu); at the end q leaves the start menu
+            try:
+                os.write(master, k)
+            except OSError:
+                break
             drain(0.25)
         try:
             proc.wait(timeout=3)
@@ -402,7 +413,7 @@ class ScreenTest(unittest.TestCase):
         self.assertIn("h: help", text)
 
     def test_arrows_space_help_and_quit_without_saving(self):
-        text, code = self.run_keys([b"\x1b[B", b"\x1b[B", b" ", b"h", b"x", b"q", b"n"])
+        text, code = self.run_keys([b"\x1bOB", b"\x1bOB", b" ", b"h", b"x", b"q", b"n"])
         self.assertEqual(code, 0)
         self.assertIn("Help", text)
         self.assertIn("Unsaved changes", text)  # the selection was changed, so quitting asked
@@ -452,6 +463,29 @@ class ScreenTest(unittest.TestCase):
         self.assertEqual(len(chains[0]["slots"]), 2)
         gen = open(os.path.join(self.root.name, "generated", "effects_chains.inc")).read()
         self.assertIn("new EffectChain(", gen)
+
+    def test_start_menu_has_configure_effects_and_a_placeholder_options_menu(self):
+        text, code = self.run_keys([b"q", b"j", b"\r", b"\r"], rows=24, cols=80)  # leave Configure effects, to Options, open it, Back
+        self.assertEqual(code, 0)
+        self.assertIn("Pedal setup", text)
+        self.assertIn("Configure effects", text)
+        self.assertIn("Options", text)
+        self.assertIn("Back", text)
+
+    def test_esc_leaves_configure_effects_for_the_start_menu(self):
+        text, code = self.run_keys([b"\x1b"])  # Esc in Configure effects, then the final q quits the start menu
+        self.assertEqual(code, 0)
+        self.assertGreaterEqual(text.count("Pedal setup"), 2)  # the start menu was drawn again
+
+    def test_saving_a_selection_that_does_not_fit_asks_first(self):
+        text, code = self.run_keys([b"p", *[b"j"] * 10, b"\r", b"s", b"n", b"q", b"n"])
+        self.assertEqual(code, 0)
+        self.assertIn("May not work", text)
+        self.assertEqual(open(os.path.join(self.root.name, "effects.config")).read(), "ALLOW_GPL=n\nfunbox-uranus=y\n")  # n: not saved
+        text, code = self.run_keys([b"p", *[b"j"] * 10, b"\r", b"s", b"y", b"q"])
+        self.assertEqual(code, 0)
+        self.assertIn("May not work", text)
+        self.assertIn("ALLOW_GPL=y", open(os.path.join(self.root.name, "effects.config")).read())  # y: saved anyway
 
     def test_a_small_terminal_does_not_crash(self):
         text, code = self.run_keys([b"q"], rows=5, cols=30)

@@ -1,17 +1,17 @@
 # Generating the firmware
 
-Which effects go into the firmware, and in which order, is chosen with the effect selection tool **`./effects_config.sh`** (Python 3, no packages needed; run it from this directory, any arguments are passed on to the tool). The result is stored in `effects.config`, and the tool generates the files the build needs from it, so `loaded_effects.h` and the `Makefile` are not edited by hand. This document describes the tool, the limits a selection has to stay within, and how to combine effects into chains. For the toolchain, the hardware variant and flashing, see [README.md](../README.md#getting-started).
+Which effects go into the firmware, and in which order, is chosen with the effect selection tool **`./pedal_setup`** (Python 3, no packages needed; run it from this directory, any arguments are passed on to the tool). The result is stored in `effects.config`, and the tool generates the files the build needs from it, so `loaded_effects.h` and the `Makefile` are not edited by hand. This document describes the tool, the limits a selection has to stay within, and how to combine effects into chains. For the toolchain, the hardware variant and flashing, see [README.md](../README.md#getting-started).
 
 The basic steps:
 
-1. Run `./effects_config.sh` and select the effects (arrows to move, space to select, `s` to save, `h` for help), or start from a preset (`./effects_config.sh preset <name>`).
+1. Run `./pedal_setup` and select the effects (arrows to move, space to select, `s` to save, `h` for help), or start from a preset (`./pedal_setup preset <name>`).
 2. Build as described in [README.md](../README.md#4-build-and-deploy-the-code). `make` regenerates the generated files by itself when `effects.config` or `effects.json` has changed.
 3. Flash the firmware. Enabling, disabling or reordering effects changes the layout of the saved settings, which are reset on the next boot.
 
 
 ## The effect selection tool
 
-Running `./effects_config.sh` without arguments brings up a full-screen tool in the terminal, where the effects are listed with what each costs in memory and the status bar shows whether the selection fits and can be built. This is the easiest way to choose the effects.
+Running `./pedal_setup` without arguments brings up a full-screen tool in the terminal. It starts with a menu: **Configure effects** opens the effect selection and **Options** opens a placeholder menu (only Back for now); `q` or Esc leaves a menu. In the effect selection the effects are listed with what each costs in memory and the status bar shows whether the selection fits and can be built. This is the easiest way to choose the effects.
 
 ![The effect selection tool](effects_config.png)
 
@@ -20,21 +20,21 @@ The selection is kept in **`effects.config`**. The tool also generates what depe
 `make` regenerates them by itself when `effects.config` changes, so after editing the file (or running one of these) just build:
 
 ```text
-./effects_config.sh                           # the interactive full-screen selection (curses): arrows to move, space to select, s to save, x to clear everything (no effects, no chains), h for help
-./effects_config.sh observe "boots and runs" --heap-used 120 --heap-free 136   # record what the pedal showed (Show Debug) for the current selection
-./effects_config.sh lint                      # parameter names and choices that are too long for the big font (the display draws them smaller; over 22 characters they would be cut)
-./effects_config.sh info funbox-uranus               # what is known about an effect: origin, copyright lines in its source, who committed it, memory (key i in the interactive mode)
-./effects_config.sh list                      # all effects, what is enabled, and what each costs in memory
-./effects_config.sh preset uranus-only        # start from a preset (configs/*.config; "everything" enables all effects)
-./effects_config.sh enable funbox-venus funbox-saturn       # enable effects (disable does the opposite)
-./effects_config.sh report                    # how much of DTCM, RAM_D2 (static data + heap), code space and SDRAM the current selection needs
-./effects_config.sh matrix funbox-venus funbox-jupiter ...  # the same for every combination of the named effects
+./pedal_setup                           # the interactive full-screen selection (curses): arrows to move, space to select, s to save, x to clear everything (no effects, no chains), h for help
+./pedal_setup observe "boots and runs" --heap-used 120 --heap-free 136   # record what the pedal showed (Show Debug) for the current selection
+./pedal_setup lint                      # parameter names and choices that are too long for the big font (the display draws them smaller; over 22 characters they would be cut)
+./pedal_setup info funbox-uranus               # what is known about an effect: origin, copyright lines in its source, who committed it, memory (key i in the interactive mode)
+./pedal_setup list                      # all effects, what is enabled, and what each costs in memory
+./pedal_setup preset uranus-only        # start from a preset (configs/*.config; "everything" enables all effects)
+./pedal_setup enable funbox-venus funbox-saturn       # enable effects (disable does the opposite)
+./pedal_setup report                    # how much of DTCM, RAM_D2 (static data + heap), code space and SDRAM the current selection needs
+./pedal_setup matrix funbox-venus funbox-jupiter ...  # the same for every combination of the named effects
 ```
 
 Only the chosen effects are compiled and linked, which matters for memory: global buffers in an object file can stay in the firmware even if nothing uses them. **Not every selection boots**: the pedal's
 heap (in RAM_D2) is small and unchecked, so too many large effects lock it up at start. `report` and `matrix` estimate that (and show what has been tried on the pedal); Some details and findings are in
 [`PERFORMANCE_AND_MEMORY.md`](PERFORMANCE_AND_MEMORY.md). The order of the enabled effects (the order in `effects.json`) is the order in the menu and decides the layout of the saved settings, so enabling or disabling an effect
-resets the saved settings on the next boot. To add an effect, add it to `effects.json` (sources, header, class, what it needs); `effects_config.sh measure` and `calibrate` update its memory figures after a build.
+resets the saved settings on the next boot. To add an effect, add it to `effects.json` (sources, header, class, what it needs); `pedal_setup measure` and `calibrate` update its memory figures after a build.
 
 ## Optional: Dattorro plate reverb (GPLv3)
 
@@ -45,7 +45,7 @@ for the full provenance chain and license text. Enabling it means the firmware b
 must be distributed under GPLv3 (or not distributed at all); leaving it out keeps your
 build entirely MIT.
 
-To opt in: set `ALLOW_GPL=y` in `effects.config` (the tool refuses to build them otherwise), enable `dattorro` (and `funbox-earth`, which is built on it) with `./effects_config.sh enable dattorro funbox-earth`, then rebuild and flash.
+To opt in: set `ALLOW_GPL=y` in `effects.config` (the tool refuses to build them otherwise), enable `dattorro` (and `funbox-earth`, which is built on it) with `./pedal_setup enable dattorro funbox-earth`, then rebuild and flash.
 
 ## Memory notes for the tool
 
@@ -61,8 +61,8 @@ Every converted effect has an entry in `effects.json` (what to compile, what it 
 
 ## Combining Effects (EffectChain)
 
-Chains can be made without writing any C++: in the interactive tool (`./effects_config.sh`) press `c`, make a chain, add its effects, and map their parameters to knobs and MIDI CCs.
-They are stored in `chains.json`, and `effects_config.sh generate` (or `s` in the tool, or `make`) turns them into `generated/effects_chains.inc`, which `loaded_effects.h` includes. The effects
+Chains can be made without writing any C++: in the interactive tool (`./pedal_setup`) press `c`, make a chain, add its effects, and map their parameters to knobs and MIDI CCs.
+They are stored in `chains.json`, and `pedal_setup generate` (or `s` in the tool, or `make`) turns them into `generated/effects_chains.inc`, which `loaded_effects.h` includes. The effects
 of a chain are built even if they are not selected on their own (`[c]` in the list). The tool checks what `effect_chain.cpp` warns about: effects on the CloudSeed engine cannot be chained, and an effect that keeps big buffers
 can exist only once (not also on its own, not in two chains). The rest of this section describes the C++ the tool writes, which you can still write by hand in `loaded_effects.h`.
 

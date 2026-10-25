@@ -95,7 +95,7 @@ and so on for the other possible options...
 
 ### 4. Build and Deploy a firmware
 
-Before building, choose which effects the firmware contains. See [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md) for how to generate the firmware configuration with `./effects_config.sh`.
+Before building, choose which effects the firmware contains. See [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md) for how to generate the firmware configuration with `./pedal_setup`.
 
 By default this project is configured to use the custom Boot Loader. To get up and running you'll need to do the following:
 
@@ -126,7 +126,7 @@ Plug your guitar into the Input and connect the Output to your amp.
 
 ## Choosing which effects are built
 
-Which effects (and chains of effects) go into the firmware is chosen with the tool `./effects_config.sh`; see [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md).
+Which effects (and chains of effects) go into the firmware is chosen with the tool `./pedal_setup`; see [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md).
 
 ## MIDI Effect and Preset Recall
 
