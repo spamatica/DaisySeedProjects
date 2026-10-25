@@ -4,9 +4,9 @@ This document goes into detail on how to get everything up and running.
 
 ## Getting Started
 
-It is recommended to try to setup your local development environment first, though there is an alternative with [pre-compiled binaries](#using-pre-compiled-releases).
- 
-_However this means you can't make any changes which can be limiting! And since a while there are too many effects to fit in one binary so you will be missing out on some good stuff._
+This fork of the bkshepherd pedal currently does not supply any pre-compiled binaries, there are now too many options and effects to provide a generic default.
+
+Instead it is recommended to setup your local development environment for building your own.
 
 ### 1. Setup your Development Environment
 
@@ -95,7 +95,7 @@ and so on for the other possible options...
 
 ### 4. Build and Deploy a firmware
 
-Before building, choose which effects the firmware contains. See [GENERATE_FIRMWARE.md](./docs/GENERATE_FIRMWARE.md) for how to generate the firmware configuration with `./effects_config.sh`.
+Before building, choose which effects the firmware contains. See [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md) for how to generate the firmware configuration with `./effects_config.sh`.
 
 By default this project is configured to use the custom Boot Loader. To get up and running you'll need to do the following:
 
@@ -109,7 +109,7 @@ By default this project is configured to use the custom Boot Loader. To get up a
 
 If you run into trouble with the bootloader. Electro-Smith has better documentation on how to get it working here: https://github.com/daisyaudio/libDaisy/blob/master/doc/md/_a7_Getting-Started-Daisy-Bootloader.md
 
-If you want to use built in flash memory only, you _can_, but it severely limits which effects you can use and how many you can have installed at once. I'd recommend choosing just 1 or 2 effects (see [GENERATE_FIRMWARE.md](docs/GENERATE_FIRMWARE.md)). Then do the following to get running on internal flash:
+If you want to use built in flash memory only, you _can_, but it severely limits which effects you can use and how many you can have installed at once. I'd recommend choosing just 1 or 2 effects (see [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md)). Then do the following to get running on internal flash:
 
 1. Remove the "APP_TYPE = BOOT_SRAM" line from the Make File:
 2. Put your Daisy Seed into DFU mode.
@@ -126,7 +126,7 @@ Plug your guitar into the Input and connect the Output to your amp.
 
 ## Choosing which effects are built
 
-Which effects (and chains of effects) go into the firmware is chosen with the tool `./effects_config.sh`; see [GENERATE_FIRMWARE.md](docs/GENERATE_FIRMWARE.md).
+Which effects (and chains of effects) go into the firmware is chosen with the tool `./effects_config.sh`; see [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md).
 
 ## MIDI Effect and Preset Recall
 
@@ -143,18 +143,3 @@ The preset number is `(CC0 * 128) + CC32`, matching the "Preset #" shown on the 
 Many switchers display Program Change numbers starting at 1 and send the displayed number minus 1, so effect index 4 is entered as PC 5 on such devices. A MIDI monitor is the easiest way to confirm what your switcher actually sends.
 
 CC0 and CC32 are reserved for Bank Select. Multi Delay Tap Mode moved from CC32 to CC33; update controller assignments that used its old CC. Bank selection is consumed by the next Program Change, so send the complete sequence for each combined recall. The effect order is build-specific and follows `effects.json`.
-
-## Using pre-compiled releases
-
-_Please note that this step is currently not recommended as it will not contain all effects and a lot of configuration options will be missing, for instance effect-chains._
-
-1. Download the .zip for the hardware variant you have built from the latest release https://github.com/bkshepherd/DaisySeedProjects/releases
-1. Unzip it so that you have a guitarpedal.bin
-1. Open https://flash.daisy.audio/ in a supported web browser
-   1. Flash the bootloader (instructions on the Bootloader tab of the web flashing tool)
-      - This step can be skipped if the bootloader has already been flashed
-   1. Flash the firmware .bin file (and repeat these steps for changing firmware versions)
-      1. Press RESET button on the daisy
-      1. Within 5 seconds single press the BOOT button on the daisy (this locks it into bootloader mode so that you can take your time to do the following steps instead of trying to do it all within 5 seconds)
-      1. Use File Upload to select the .bin file
-      1. Press Flash

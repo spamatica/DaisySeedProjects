@@ -1,6 +1,6 @@
 # Generating the firmware
 
-Which effects go into the firmware, and in which order, is chosen with the effect selection tool, started with the shell script **`./effects_config.sh`** (Python 3, no packages needed; run it from this directory, any arguments are passed on to the tool). The result is stored in `effects.config`, and the tool generates the files the build needs from it, so `loaded_effects.h` and the `Makefile` are not edited by hand. This document describes the tool, the limits a selection has to stay within, and how to combine effects into chains. For the toolchain, the hardware variant and flashing, see [README.md](../README.md#getting-started).
+Which effects go into the firmware, and in which order, is chosen with the effect selection tool **`./effects_config.sh`** (Python 3, no packages needed; run it from this directory, any arguments are passed on to the tool). The result is stored in `effects.config`, and the tool generates the files the build needs from it, so `loaded_effects.h` and the `Makefile` are not edited by hand. This document describes the tool, the limits a selection has to stay within, and how to combine effects into chains. For the toolchain, the hardware variant and flashing, see [README.md](../README.md#getting-started).
 
 The basic steps:
 
@@ -32,7 +32,7 @@ The selection is kept in **`effects.config`**. The tool also generates what depe
 ```
 
 Only the chosen effects are compiled and linked, which matters for memory: global buffers in an object file can stay in the firmware even if nothing uses them. **Not every selection boots**: the pedal's
-heap (in RAM_D2) is small and unchecked, so too many large effects lock it up at start. `report` and `matrix` estimate that (and show what has been tried on the pedal); the details are in
+heap (in RAM_D2) is small and unchecked, so too many large effects lock it up at start. `report` and `matrix` estimate that (and show what has been tried on the pedal); Some details and findings are in
 [`PERFORMANCE_AND_MEMORY.md`](PERFORMANCE_AND_MEMORY.md). The order of the enabled effects (the order in `effects.json`) is the order in the menu and decides the layout of the saved settings, so enabling or disabling an effect
 resets the saved settings on the next boot. To add an effect, add it to `effects.json` (sources, header, class, what it needs); `effects_config.sh measure` and `calibrate` update its memory figures after a build.
 
