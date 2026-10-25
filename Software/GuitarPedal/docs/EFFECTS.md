@@ -120,7 +120,7 @@ Original to this project.
 
 ### Preamp
 
-A light amp-like preamp: one or two tube-style gain stages, a three-band tone stack and a speaker-like high cut, in three voicings. It is a cheaper alternative to a NAM amp model when you want an amp-like crunch without the processing cost. Put it after a pedal such as a Screamer or Booster to push it into saturation.
+A light amp-like preamp: one or two tube-style gain stages, a three-band tone stack and a speaker-like high cut, in three voicings. A suggestion is to put it after a pedal such as a Screamer or Booster to push it into saturation.
 
 Original to this project.
 
@@ -130,8 +130,6 @@ Original to this project.
 - **Treble** (-12 to +12 dB, default 0 dB; Knob 4): a high shelf at 3.2 kHz.
 - **Voicing** (Clean, Crunch, Lead; default Crunch; Knob 5): Clean is a single gain stage, a warm clean boost that breaks up at high Gain. Crunch has two stages for a classic rhythm crunch. Lead has the most gain and the tightest top end.
 - **Level** (-24 to +6 dB, default 0 dB; Knob 6): output level. Clean and Crunch are matched to about the same loudness; Lead is matched to Crunch when played hard.
-
-Tip: at a normal playing level Crunch is still fairly clean at medium Gain and comes alive above it; Lead is saturated from about the middle of the knob.
 
 ### Wavefolder
 
@@ -156,7 +154,7 @@ A bit crusher and sample-rate reducer: it lowers the bit depth (fewer quantizati
 - **Jitter** (0 to 100%, default 0%; Knob 4): random variation of the sample-rate hold interval, which adds instability and grit.
 - **Cutoff** (500 Hz to 20 kHz, default 6000 Hz; Knob 5): a low-pass after the crusher to tame the high aliasing.
 - **Mix** (0 to 100%, default 100%; Knob 6): blend of the clean signal and the crushed signal.
-- **Footswitch 2**: toggles Pitch Tracking. The second LED is lit while tracking is on. When you switch tracking off, the Rate knob keeps its previous manual value until you move the knob.
+- **Footswitch 2**: toggles Pitch Tracking. The second LED is lit while tracking is on.
 
 ### Exciter
 
@@ -257,8 +255,6 @@ Modelled on the harmonic tremolo (called "vibrato" by Fender) of early 1960s Fen
 
 Moves the sound back and forth between the left and right outputs with an LFO. The Stereo option decides what is panned: with Stereo off, the (mono) input is panned between the two outputs; with Stereo on, a stereo input keeps its stereo image and the centre of the image is moved from side to side. Set the Osc Freq to its lowest setting to hold the sound in the centre. The pedal display shows a small L to R slider with the pan position.
 
-An extension of the simple auto-pan of the original firmware this project is forked from.
-
 - **Wet** (0 to 100%, default 100%; Knob 1): amount of panned signal against the dry one.
 - **Osc Freq** (0.01 to 4.01 Hz, default 0.41 Hz; Knob 2): pan speed. At the lowest setting the pan stops in the centre.
 - **Osc Wave** (Sine, Triangle, Saw, Ramp, Square, Poly Tri, Poly Saw, Poly Sqr; default Sine; Knob 3): shape of the pan movement. Sine and Triangle glide, Square jumps from one side to the other (the movement is smoothed a little).
@@ -269,7 +265,7 @@ An extension of the simple auto-pan of the original firmware this project is for
 
 A rhythmic gate: the sound is switched on and off in one of 14 rhythm patterns, locked to a tempo. Use it for stutter and "trance gate" effects. Pattern 1 is a steady chop in sixteenth steps, others use every second step, eighth or quarter notes, one hit per beat, grouped pairs and triples, and syncopated groups of eighths, sixteenths and quarters. The display shows the pattern as a row of blocks. The effect is best with sustained chords or a bit of distortion in front of it.
 
-A wave slicer created and contributed by KnightHill (the Chopper of the original firmware this project is forked from).
+A wave slicer created and contributed by KnightHill.
 
 - **Wet** (0 to 100%, default 50%; Knob 1): amount of chopped signal against the dry one. Use 100% for a full gate.
 - **Tempo** (30 to 240 BPM, default 135 BPM; Knob 2): speed of the pattern.
@@ -313,7 +309,7 @@ The first three controls are for the whole effect, the rest are repeated for eac
 - **Mix** (0 to 100%, default 100%; Knob 1): amount of phased signal against the dry one. At 100% the notches are deepest, as in the classic units; lower it for a shallower sweep.
 - **Routing** (Series or Parallel, default Series; menu only): in Series each phaser phases the output of the one before it, so the sweep gets deeper and more complex with every phaser. In Parallel all phasers process the dry signal and their outputs are averaged: the sound is lighter and each phaser stays separate. Changing the routing while playing fades the effect out and in again (about 100 ms) so it does not click.
 - **Output** (Mono or Stereo, default Mono; menu only): Mono sums to mono and sends the same signal to both outputs. In Stereo the right channel is the same phasers a quarter of a cycle later, a wide moving sweep.
-- **P1 On, P2 On, P3 On, P4 On** (Off or On; default P1 and P2 On, P3 and P4 Off; menu only): switch a phaser in or out, with a short fade.
+- **P1 On, P2 On, P3 On, P4 On** (Off or On; default P1 and P2 On, P3 and P4 Off; menu only): switch a phaser in or out.
 - **P1 Rate** (0.05 to 10 Hz, exponential, default 0.54 Hz; Knob 2): speed of the phaser's LFO.
 - **P1 Depth** (0 to 100%, default 80%; Knob 3): how far the notches sweep from the Center, up to two and a half octaves each way.
 - **P1 Feedback** (-85% to +85%, default +26%; Knob 4): feeds the end of the chain back to its input. Positive values make the notches narrow and the peaks resonant (a whistling, "jet" sound); negative values give a hollower, more nasal sound. The level is corrected so that more feedback does not get louder.
@@ -324,7 +320,7 @@ The first three controls are for the whole effect, the rest are repeated for eac
 - **P1 Phase to P4 Phase** (0 to 360 degrees; default 0, 90, 180, 270; menu only): where in its cycle the LFO starts, against the other phasers. With the same rate two phasers keep that distance.
 - **P2 Feedback** (default 0%), **P3 and P4 Rate, Depth, Feedback** (as P1; menu only): P3 defaults to 0.92 Hz, 60%, +17%; P4 to 0.19 Hz, 90%, 0%.
 
-Level: each phaser makes up the loss of level that phasing causes, so the default settings keep a guitar signal at about the level of the input, and more phasers in series get somewhat louder (four are about 5 dB louder). In Parallel they average, so the level does not grow. With several phasers in series and high feedback the output can clip; turn the Mix or Feedback down, or the level before the effect.
+Level: each phaser makes up the loss of level that phasing causes, so the default settings keep a guitar signal at about the level of the input, and more phasers in series get somewhat louder (four are about 5 dB louder). In Parallel they average, so the level does not grow.
 
 Tip: Classic phaser: turn P2 off, 4 stages, Rate 0.5 Hz, Depth 80%, Feedback +30%. Jet sweep: one phaser with 12 stages, Feedback +70%, Rate 0.15 Hz, Depth 100%, Center 800 Hz. Shimmer: four phasers in Parallel with Random waves at different rates. Stereo swirl: Output Stereo with two phasers in Series.
 
@@ -348,7 +344,6 @@ Echoes and time-based textures, from clean repeats and tape echoes to granular a
 ### Delay
 
 A versatile stereo delay with six delay types (forward, reverse, octave, combinations, and a dual-voice mode), a tone filter on the repeats, stereo spread and a modulation section that can add vibrato, tremolo or auto-pan to the echoes. Delay times go from 50 ms up to 2 seconds. Tap tempo and a rhythmic mode (triplet or dotted eighth) make it easy to play in time. Switching it on starts from silence, with no leftover repeats from last time (except when Trails is ringing out).
-
 
 - **Delay Time** (50 to 2000 ms, default 400 ms; Knob 1): time between repeats.
 - **D Feedback** (0 to 100%, default 50%; Knob 2): number of repeats.
@@ -487,10 +482,6 @@ The effect models this physically, with 2 to 6 springs of different lengths. Rea
 - **Springs** (2 to 6, default 4; menu only): number of springs. Each adds a train of echoes at its own spacing, so more springs make a denser, less regular tail. With only 2 springs the echoes are easier to hear as a delay.
 - **Output** (Stereo or Mono, default Mono; menu only): Mono puts all springs on both outputs. Stereo puts every other spring on each side (1st, 3rd and 5th left; 2nd, 4th and 6th right) for a wider tank.
 
-Tip: If it sounds like a delay, lower the Mix, use more springs, keep Drip at 100%, shorten the Decay, or use the Short or Medium tank.
-
-Tip: Surf and rockabilly: Mix 40 to 60%, Drip 100%, Decay about 2 s, Tone high, Dwell around 6, with a Booster in front. Subtle ambience: Mix 15 to 25%, Decay 1 s, Drip about 70%. In an effect chain, put it last.
-
 ### CloudSeed
 
 A large, lush reverb with a long, smooth tail, built on the CloudSeed engine: pre-delay, diffusion, a modulated tail and a tone control, with eight built-in room and space presets. The tail can be very long (decay up to a minute), so it also works for ambient washes. Because the Daisy has limited processing power, the engine runs with fewer delay lines than the desktop plugin, so the presets sound a little different from it.
@@ -611,7 +602,7 @@ Tip: set Thresh so the compressor works on loud notes only, then raise Level unt
 
 ### DuckComp
 
-A side-chain compressor: the audio is turned down by the level of a separate "key" signal instead of by its own level. With the key on the right input, you play or feed in a signal on the right input (it is not heard) and the audio on the left input ducks every time the key is loud, which gives the classic pumping or ducking effect, for example a drum loop making a pad or reverb tail get out of the way. Set Key Input to Left and the audio is its own key, which makes it an ordinary compressor.
+A compressor with optional side-chain where the audio is turned down by the level of a separate "key" signal instead of by its own level. With the key on the right input, you play or feed in a signal on the right input (it is not heard) and the audio on the left input ducks every time the key is loud, which gives the classic pumping or ducking effect, for example a drum loop making a pad or reverb tail get out of the way. Set Key Input to Left and the audio is its own key, which makes it an ordinary compressor.
 
 Original to this project; it uses the Simple Compressor by ChunkWare Music Software (2006, open source).
 
@@ -813,7 +804,7 @@ A signal generator for checking levels together with the pedal's input and outpu
 
 ## Funbox
 
-FunBox is an open source Daisy Seed pedal project by GuitarML (Keith Bloemer), where each pedal is named after a planet or moon. The effects below are ports of those pedals; they appear in the effect list with the `funbox-` prefix (for example `funbox-venus`). The three-way and dip switches of the original pedals became menu items here, the original footswitch handling is replaced by this pedal's secondary footswitch, and the expression pedal is not supported. All of them are MIT licensed except Earth, which is GPLv3 and only built when you opt in. The five newest ports (Balnea, Pluto, Cassini, Mars, Mercury) still need testing on hardware.
+FunBox is an open source Daisy Seed pedal project by GuitarML (Keith Bloemer), where each pedal is named after a planet or moon. The effects below are ports of those pedals; they appear in the effect list with the `funbox-` prefix (for example `funbox-venus`). The three-way and dip switches of the original pedals became menu items here, the original footswitch handling is replaced by this pedal's secondary footswitch, and the expression pedal is not supported. All of them are MIT licensed except Earth, which is GPLv3 and only built when you opt in.
 
 ### Venus
 
@@ -927,7 +918,7 @@ Tip: when you turn Time, the delays slide slowly into place, which gives a pitch
 
 ### Balnea
 
-`funbox-balnea` is a digital delay and pitch shifter inspired by the CBA Thermae pedal. The delay lines are read at a different speed than they are written, which transposes the repeats; a sequencer steps through up to three speeds, one per delay time (the base speed, the first interval, both intervals together), so the repeats climb or fall in pitch as they recirculate. It adds tap tempo, a reverse mode, tape wow and flutter, a self-oscillating hold and a small MIDI synth to play along with. Adapted from the Balnea pedal of the FunBox project (GuitarML, Keith Bloemer, MIT); the reverse delay line is by Adam Fulford (MIT). It needs more testing on hardware.
+`funbox-balnea` is a digital delay and pitch shifter inspired by the CBA Thermae pedal. The delay lines are read at a different speed than they are written, which transposes the repeats; a sequencer steps through up to three speeds, one per delay time (the base speed, the first interval, both intervals together), so the repeats climb or fall in pitch as they recirculate. It adds tap tempo, a reverse mode, tape wow and flutter, a self-oscillating hold and a small MIDI synth to play along with. Adapted from the Balnea pedal of the FunBox project (GuitarML, Keith Bloemer, MIT); the reverse delay line is by Adam Fulford (MIT).
 
 - **Mix** (0-100%, default 50%; Knob 1): dry/wet balance.
 - **Tone** (100 Hz-14 kHz, default about 9 kHz; Knob 2): low-pass filter on the repeats.
@@ -949,7 +940,7 @@ With one input both delay lines get the same signal (the wow differs left and ri
 
 ### Pluto
 
-`funbox-pluto` is a wacky dual (or stereo) looper for endless experimentation. Each of the two loopers records up to a minute and plays it at a variable speed (smooth or stepped, forwards or backwards, up to 3x). They share one live effect that the two Mod controls shape: random speed variations, a low/high pass filter, or a stereo reverb. Loops are recorded at normal speed, so turning Speed changes their pitch and tempo. Adapted from the Pluto pedal of the FunBox project (GuitarML, Keith Bloemer, MIT); the looper is a modified version of the DaisySP Looper. It needs more testing on hardware.
+`funbox-pluto` is a wacky dual (or stereo) looper for endless experimentation. Each of the two loopers records up to a minute and plays it at a variable speed (smooth or stepped, forwards or backwards, up to 3x). They share one live effect that the two Mod controls shape: random speed variations, a low/high pass filter, or a stereo reverb. Loops are recorded at normal speed, so turning Speed changes their pitch and tempo. Adapted from the Pluto pedal of the FunBox project (GuitarML, Keith Bloemer, MIT); the looper is a modified version of the DaisySP Looper.
 
 - **Level A** (default 0 dB at 50%; Knob 1): volume of looper A. The middle is unity.
 - **Mod A** (default 0; Knob 2): looper A's effect control, depending on Effect: Stability (speed variations), Filter (low-pass to the left, high-pass to the right) or Reverb (decay time).
@@ -967,7 +958,7 @@ With one input (mono) both loopers record it and both loops play on both channel
 
 ### Cassini
 
-`funbox-cassini` is a chromatic sampler to play with a MIDI keyboard. Hold the footswitch to sample the input (up to 20 seconds, into one of three banks); every key then plays the sample at its own pitch (middle C is the unchanged pitch) through an envelope, a low/high pass filter and a reverb. A looper can record and loop what you play, at a variable speed (also backwards). Adapted from the Cassini pedal of the FunBox project (GuitarML, Keith Bloemer, MIT); the looper is shared with Pluto and the reverb is DaisySP's ReverbSc. It needs more testing on hardware.
+`funbox-cassini` is a chromatic sampler to play with a MIDI keyboard. Hold the footswitch to sample the input (up to 20 seconds, into one of three banks); every key then plays the sample at its own pitch (middle C is the unchanged pitch) through an envelope, a low/high pass filter and a reverb. A looper can record and loop what you play, at a variable speed (also backwards). Adapted from the Cassini pedal of the FunBox project (GuitarML, Keith Bloemer, MIT); the looper is shared with Pluto and the reverb is DaisySP's ReverbSc.
 
 - **Trim Start** (0-100%, default 0%; Knob 1): where the sample starts, as a part of its length.
 - **Trim End** (0-100%, default 100%; Knob 2): where the sample ends. Set before the start, the sample plays backwards.
@@ -984,7 +975,7 @@ With one input (mono) both loopers record it and both loops play on both channel
 
 ### Mars
 
-`funbox-mars` is an amp sim and delay: three neural amp/pedal models (small neural networks running in real time), three cabinet impulse responses, a low/high pass filter, and a delay with dotted eighth and triplet modes. Mono: only the left input is used and the signal goes to both outputs. The signal chain is gain, neural model, filter, delay, mix with the amp, cabinet. Adapted from the Mars pedal of the FunBox project (GuitarML, Keith Bloemer, MIT). It needs more testing on hardware.
+`funbox-mars` is an amp sim and delay: three neural amp/pedal models (small neural networks running in real time), three cabinet impulse responses, a low/high pass filter, and a delay with dotted eighth and triplet modes. Mono: only the left input is used and the signal goes to both outputs. The signal chain is gain, neural model, filter, delay, mix with the amp, cabinet. Adapted from the Mars pedal of the FunBox project (GuitarML, Keith Bloemer, MIT).
 
 - **Gain** (0.1-2.5x, default 1x; Knob 1): input gain of the neural model, how hard it is driven.
 - **Mix** (0-100%, default 30%; Knob 2): balance between the amp and the delay.
@@ -1000,7 +991,7 @@ With one input (mono) both loopers record it and both loops play on both channel
 
 ### Mercury
 
-`funbox-mercury` is an amp sim built on Neural Amp Modeler (NAM) models: nine "pico" models (a NAM Nano with two channels in the first layer array instead of four, small enough to run in real time on the Daisy) and a four band EQ. It has no cabinet, so use it with a separate cab or IR effect or a real amp. Mono: only the left input is used and the signal goes to both outputs. Models, by gain: low gain Matchless SC30, Twin Reverb, Dumble Low Gain; medium gain Dumble Higher Gain, Ethos Tube Pedal, JCM800 Medium Gain; high gain Mesa IIB, Splawn, PRS Archon. Adapted from the Mercury pedal of the FunBox project (GuitarML, Keith Bloemer, MIT); the network code derives from RTNeural-NAM by Jatin Chowdhury (BSD 3-Clause). It needs more testing on hardware. For official NAM A2 Nano models use the NAM A2 effect instead.
+`funbox-mercury` is an amp sim built on Neural Amp Modeler (NAM) models: nine "pico" models (a NAM Nano with two channels in the first layer array instead of four, small enough to run in real time on the Daisy) and a four band EQ. It has no cabinet, so use it with a separate cab or IR effect or a real amp. Mono: only the left input is used and the signal goes to both outputs. Models, by gain: low gain Matchless SC30, Twin Reverb, Dumble Low Gain; medium gain Dumble Higher Gain, Ethos Tube Pedal, JCM800 Medium Gain; high gain Mesa IIB, Splawn, PRS Archon. Adapted from the Mercury pedal of the FunBox project (GuitarML, Keith Bloemer, MIT); the network code derives from RTNeural-NAM by Jatin Chowdhury (BSD 3-Clause). For official NAM A2 Nano models use the NAM A2 effect instead.
 
 - **Gain** (0.1-2.5x, default 1x; Knob 1): input gain of the model, how hard it is driven.
 - **Level** (default centre; Knob 2): overall volume.
