@@ -213,6 +213,9 @@ if build "$B/t_booster" $T/test_booster.cpp Effect-Modules/booster_module.cpp $B
 step "Auto Filter (Dynamic, Mutron, Q-Tron, Auto Wah, Bass): the sweep range of each type, Up and Down, Sens, Decay, Peak, filter modes, Mix, dry lows of Bass, block path, bounds"
 if build "$B/t_auto_filter" $T/test_auto_filter.cpp Effect-Modules/auto_filter_module.cpp $BASEMOD; then check "$B/t_auto_filter"; else FAILS=$((FAILS + 1)); fi
 
+step "Vowel (formant filter, A E I O U, momentary change of vowel on the second footswitch): the formants of each vowel, Voice, Sharp, Glide, footswitch, Mix, block path, bounds"
+if build "$B/t_vowel" $T/test_vowel.cpp Effect-Modules/vowel_module.cpp $BASEMOD; then check "$B/t_vowel"; else FAILS=$((FAILS + 1)); fi
+
 step "Multi Phaser (four phasers in series or parallel): the allpass formula, the notches, the sweep rate, routing, feedback, Stereo, switching without clicks, block path, bounds"
 if build "$B/t_multi_phaser" $T/test_multi_phaser.cpp Effect-Modules/multi_phaser_module.cpp $BASEMOD; then check "$B/t_multi_phaser"; else FAILS=$((FAILS + 1)); fi
 

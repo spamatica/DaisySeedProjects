@@ -5,7 +5,7 @@ These are the effects that can be included in a firmware; which of them your ped
 Each effect below has a short description, where it comes from when that is known, and a list of its parameters. "Knob N" is the knob the parameter is on by default; "menu only" parameters are reached through the parameter menu. Ranges and defaults are the values the display shows.
 
 - [Gain, Distortion and Saturation](#gain-distortion-and-saturation): Booster, Overdrive, Screamer, Distortion, Chainsaw, Muff Fuzz, Octa Fuzz, Bass Dist, Preamp, Wavefolder, Crusher, Exciter, Tape Sat, Dist Bench
-- [Modulation](#modulation): Tremolo, Harm Trem, AutoPan, Auto Filter, Chopper, Chorus, Phaser, Multi Phaser, Flanger
+- [Modulation](#modulation): Tremolo, Harm Trem, AutoPan, Auto Filter, Vowel, Chopper, Chorus, Phaser, Multi Phaser, Flanger
 - [Delay](#delay): Delay, Multi Delay, Tape Delay, Dual Echo, GranDelay, SpctDelay, PluckEcho
 - [Reverb](#reverb): Reverb, Spring Reverb, CloudSeed, Dattorro, Verb Delay
 - [Pitch](#pitch): Pitch, PolyOctave, SciFi
@@ -285,6 +285,25 @@ Output is mono (a stereo input uses the left channel).
 - **Filter** (Low Pass, Band Pass, High Pass; default Band Pass; menu only): Band Pass is the classic vocal quack, Low Pass is a smoother "wow" that keeps the lows, High Pass is thin and sharp.
 - **Mix** (0 to 100%, default 100%; menu only): the filtered signal against the dry one. Below 100% the effect is subtler and keeps more of the body of the note.
 - The left LED brightness follows the filter's sweep.
+
+### Vowel
+
+Experimental. A vowel filter, the "talking guitar" of a talk box without the tube: a bank of four resonant filters is tuned to the formants of a sung vowel, so the guitar sounds as if it were sung through that vowel. Single notes and chords both work; the sound is nasal and a bit hollow, and it gets more vocal with a little gain in front of it (a Booster or Screamer before it works well).
+
+The second footswitch changes the vowel while it is held: the filter glides to the Hold Vowel, and glides back to the Vowel when you let go. Pressing it in time with the playing makes the guitar speak: A and I give "ai", A and U give "au", E and O give "eo". The left LED is bright while the second vowel is held and dim otherwise.
+
+Original to this project. The vowel formants are the standard figures for a sung tenor voice (the table used by many synthesizers), which is not how a real talk box sounds, but it recognisably says the vowels.
+
+Output is mono (a stereo input uses the left channel).
+
+- **Vowel** (A, E, I, O, U; default A; Knob 1): the vowel of the filter.
+- **Hold Vowel** (A, E, I, O, U; default I; Knob 2): the vowel it changes to while the second footswitch is held.
+- **Glide** (5 to 800 ms, default about 40 ms; Knob 3): how long it takes to move from one vowel to the other. Short is a sharp "wow", long is a slow morph.
+- **Sharp** (0 to 100%, default 50%; Knob 4): how narrow the formants are. Low is soft and breathy, high is nasal and more pronounced.
+- **Mix** (0 to 100%, default 100%; Knob 5): the filtered signal against the dry one.
+- **Level** (-12 to +12 dB, default 0 dB; Knob 6): the output level. At 0 dB every vowel is about 3 dB louder than the input at normal playing level.
+- **Voice** (Male, Female, Child; default Male; menu only): moves the formants up (20% for Female, 40% for Child), as a shorter vocal tract would.
+- **Footswitch 2**: the momentary vowel change described above (not used for tap tempo).
 
 ### Chopper
 

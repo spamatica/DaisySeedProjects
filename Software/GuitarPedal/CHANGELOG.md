@@ -29,6 +29,7 @@
 - **Chainsaw:** an HM-2-style heavy metal distortion, the "Swedish chainsaw"
 - **Dist Bench:** a test bench with up to four distortion stages in series.
 - **Auto Filter:** an envelope filter (auto wah) in five types: Dynamic (Boss FT-2), Mutron (Mu-Tron III), Q-Tron, Auto Wah and Bass; Sens, Range, Peak, Decay, Up or Down, and low, band or high pass.
+- **Vowel (experimental):** a vowel (formant) filter, the guitar sings A, E, I, O or U; the second footswitch glides to another vowel while held.
 
 ## Settings and display
 - **Effect chains: Switches** (a parameter of every chain of two or more effects): the two footswitches switch two of its effects on and off (any pair of them, for a chain of any size: 2+1, 3+1, 3+2, 4+1, ..., named left to right like the footswitches), each LED showing its effect; saved with the chain's presets.

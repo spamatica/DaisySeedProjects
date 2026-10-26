@@ -708,6 +708,16 @@
    "note": "single-instance only"
   },
   {
+   "id": "vowel",
+   "class": "VowelModule",
+   "header": "vowel_module.h",
+   "sources": [
+    "Effect-Modules/vowel_module.cpp"
+   ],
+   "origin": "this project (spamatica)",
+   "note": "Experimental: a vowel (formant) filter, the guitar sings A, E, I, O or U; the second footswitch glides to another vowel while held"
+  },
+  {
    "id": "wavefolder",
    "class": "WavefolderModule",
    "header": "wavefolder_module.h",
