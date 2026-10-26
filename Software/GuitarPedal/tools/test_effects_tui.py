@@ -33,6 +33,172 @@ def make_root(path):
         f.write('{"chains": []}\n')
 
 
+def nam_file(name, weights=1871, arch="WaveNet", slimmable=False, gear=None):
+    """The JSON of a .nam file with the given name in its metadata (a SlimmableContainer gets a second, larger submodel that must not be picked)."""
+    import json
+    w = [0.001 * (i % 7) for i in range(weights)]
+    if slimmable:
+        d = {"architecture": "SlimmableContainer", "metadata": {"name": name, "gear_model": gear},
+             "config": {"submodels": [{"max_value": 0.5, "model": {"weights": w}}, {"max_value": 1.0, "model": {"weights": w + [0.5] * 100}}]}}
+    else:
+        d = {"architecture": arch, "metadata": {"name": name}, "weights": w}
+    return json.dumps(d).encode()
+
+
+def make_nam_dir(path, sources=False):
+    """A NAM directory in a temporary place: the real update_models.sh and nam_to_cpp_array.py, three small model files (name, weights comment,
+    kOutputGain) and, with sources, a models_nam directory with a .nam file, a .zip with a .nam file in it and two that cannot be used."""
+    import zipfile
+    os.makedirs(os.path.join(path, "models"))
+    for f in ("update_models.sh", "nam_to_cpp_array.py"):
+        shutil.copy(os.path.join(fx.NAM_DIR_DEFAULT, f), os.path.join(path, f))
+    with open(os.path.join(path, "nam_a2_runtime.h"), "w") as f:
+        f.write("static constexpr int kA2WeightCount = 1871;\n")
+    for stem, name, weights in (("alpha", "Alpha", 1871), ("beta", "Beta", 2000), ("gamma", "Gamma", 1871)):
+        with open(os.path.join(path, "models", stem + ".h"), "w") as f:
+            f.write('#pragma once\n// NAM A2 model "%s", source: %s.nam\n// (%d weights, A2 Nano/Lite: C=3 channels, 23 layers).\nnamespace nam_model_%s {\n'
+                    'inline constexpr const char *kName = "%s";\ninline constexpr float kOutputGain = 1.0f;\n}\n' % (name, stem, weights, stem, name))
+    # the calibration measures with tests/host/calibrate_nam.sh (two directories up): a stand-in that reports 6 dB for every model in models_list.inc
+    host = os.path.normpath(os.path.join(path, "..", "..", "tests", "host"))
+    os.makedirs(host, exist_ok=True)
+    with open(os.path.join(host, "calibrate_nam.sh"), "w") as f:
+        f.write('cd "$(dirname "$0")/../.." || exit 1\ni=0\nfor name in $(grep -o "nam_model_[A-Za-z0-9_]*::kName" Effect-Modules/Nam/models_list.inc | sed "s/nam_model_//;s/::kName//"); do\n'
+                '    echo "$i $name 6.0"\n    i=$((i + 1))\ndone\n')
+    if sources:
+        src = os.path.join(path, "models_nam")
+        os.makedirs(src)
+        open(os.path.join(src, "amp1.nam"), "wb").write(nam_file('Cool "Amp" 1'))
+        open(os.path.join(src, "alpha.nam"), "wb").write(nam_file("Alpha again"))  # the source of the installed model alpha: converted already
+        open(os.path.join(src, "bad.nam"), "wb").write(nam_file("Bad", arch="LSTM"))
+        open(os.path.join(src, "small.nam"), "wb").write(nam_file("Small", weights=100))
+        with zipfile.ZipFile(os.path.join(src, "pack.zip"), "w") as z:
+            z.writestr("inner/Pack Model.nam", nam_file("Pack Model", slimmable=True, gear="Pack Gear"))
+
+
+class NamSelectorTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.nam = os.path.join(self.tmp.name, "Effect-Modules", "Nam")
+        make_nam_dir(self.nam)
+        self.saved = fx.NAM_DIR
+        fx.NAM_DIR = self.nam
+        self.sel = tui.NamSelector(fx)
+
+    def tearDown(self):
+        fx.NAM_DIR = self.saved
+        self.tmp.cleanup()
+
+    def listed(self):
+        return [l.split("/")[1][:-4] for l in open(os.path.join(self.nam, "models_list.inc")) if l.startswith("#include")] if os.path.exists(os.path.join(self.nam, "models_list.inc")) else None
+
+    def test_lists_the_model_files_with_name_and_weights_all_selected(self):
+        self.assertEqual([(m["stem"], m["name"], m["weights"], m["state"]) for m in self.sel.models],
+                         [("alpha", "Alpha", 1871, "installed"), ("beta", "Beta", 2000, "installed"), ("gamma", "Gamma", 1871, "installed")])
+        self.assertEqual(self.sel.selected, {"alpha", "beta", "gamma"})
+        self.assertFalse(self.sel.dirty)
+        self.assertAlmostEqual(self.sel.kilobytes(1871), 7.3, 1)
+        self.assertEqual(self.sel.status()[1], 0)
+
+    def test_toggle_marks_dirty_and_none_selected_cannot_be_saved(self):
+        self.sel.toggle()
+        self.assertEqual(self.sel.selected, {"beta", "gamma"})
+        self.assertTrue(self.sel.dirty)
+        self.assertTrue(self.sel.status()[0].startswith("* "))
+        self.sel.set_all(False)
+        self.assertEqual(self.sel.status()[1], 2)
+        self.assertFalse(self.sel.save())
+        self.assertIn("at least one", self.sel.message)
+        self.assertFalse(os.path.exists(os.path.join(self.nam, "models.config")))  # nothing written
+
+    def test_save_writes_the_config_and_runs_update_models(self):
+        self.sel.toggle()          # alpha off
+        self.sel.move(1)
+        self.sel.move(1)
+        self.sel.toggle()          # gamma off
+        self.assertTrue(self.sel.save(), self.sel.message)
+        self.assertFalse(self.sel.dirty)
+        self.assertEqual(self.listed(), ["beta"])
+        cfg = open(os.path.join(self.nam, "models.config")).read()
+        self.assertIn("alpha=n", cfg)
+        self.assertIn("beta=y", cfg)
+        self.assertIn("gamma=n", cfg)
+        self.assertEqual(tui.NamSelector(fx).selected, {"beta"})  # read back
+        # the script on its own (what make runs) keeps the choice
+        subprocess.run(["sh", os.path.join(self.nam, "update_models.sh"), "--no-calibrate"], check=True)
+        self.assertEqual(self.listed(), ["beta"])
+
+    def test_new_nam_and_zip_files_are_listed_and_converted_when_saved(self):
+        shutil.rmtree(self.nam)  # start over with the sources
+        make_nam_dir(self.nam, sources=True)
+        sel = tui.NamSelector(fx)
+        by = {m["stem"]: m for m in sel.models}
+        self.assertEqual(sorted(by), ["alpha", "bad", "beta", "cool_amp_1", "gamma", "pack_model", "small"])
+        self.assertEqual(by["cool_amp_1"]["state"], "new")
+        self.assertEqual(by["cool_amp_1"]["name"], "Cool 'Amp' 1")      # the name in the metadata (the quotes would break the C string)
+        self.assertEqual(by["pack_model"]["state"], "new")               # from the zip; the smaller submodel's weights
+        self.assertEqual(by["pack_model"]["gear_model"], "Pack Gear")
+        self.assertEqual(sel.suggested_name(by["pack_model"]), "Pack Gear - Pack Model")  # both, to be edited down
+        self.assertEqual(sel.suggested_name(by["cool_amp_1"]), "Cool 'Amp' 1")             # no gear model: the name
+        self.assertIn("at most 14", sel.rename(by["pack_model"], "Pack Gear - Pack Model"))  # 22 characters: too long
+        self.assertIn("empty", sel.rename(by["pack_model"], "  "))
+        self.assertEqual(sel.rename(by["pack_model"], 'Pack "Gear"'), "")
+        self.assertEqual(by["pack_model"]["name"], "Pack 'Gear'")
+        self.assertEqual(by["pack_model"]["weights"], 1871)
+        self.assertEqual(by["pack_model"]["from"], "pack.zip")
+        self.assertNotIn("alpha_again", by)                              # alpha.nam is the source of the installed alpha
+        self.assertEqual([m["state"] for m in sel.models if m["name"] in ("Bad", "Small")], ["unsupported", "unsupported"])
+        self.assertEqual(sel.selected, {"alpha", "beta", "gamma"})       # new models start unselected
+        sel.cursor = [m["stem"] for m in sel.models].index("bad")
+        sel.toggle()                                                    # an unsupported model cannot be selected
+        self.assertIn("cannot be used", sel.message)
+        self.assertNotIn("bad", sel.selected)
+        sel.cursor = [m["stem"] for m in sel.models].index("cool_amp_1")
+        sel.toggle()
+        sel.cursor = [m["stem"] for m in sel.models].index("pack_model")
+        sel.toggle()
+        self.assertIn("2 to convert", sel.status()[0])
+        self.assertTrue(sel.save(), sel.message)
+        header = open(os.path.join(self.nam, "models", "cool_amp_1.h")).read()
+        self.assertIn('kName = "Cool \'Amp\' 1"', header)
+        self.assertIn("source: amp1.nam", header)
+        self.assertIn("(1871 weights", open(os.path.join(self.nam, "models", "pack_model.h")).read())
+        self.assertIn("kName = \"Pack 'Gear'\"", open(os.path.join(self.nam, "models", "pack_model.h")).read())
+        listed = open(os.path.join(self.nam, "models_list.inc")).read()
+        for stem in ("alpha", "beta", "gamma", "cool_amp_1", "pack_model"):
+            self.assertIn("models/%s.h" % stem, listed)
+        again = tui.NamSelector(fx)                                      # converted: installed now, and not listed twice
+        self.assertEqual([m["state"] for m in again.models if m["stem"] in ("cool_amp_1", "pack_model")], ["installed", "installed"])
+        self.assertEqual(len([m for m in again.models if m["name"].startswith("Cool")]), 1)
+        self.assertEqual(again.selected, {"alpha", "beta", "gamma", "cool_amp_1", "pack_model"})
+
+    def test_a_name_that_is_too_long_blocks_saving(self):
+        shutil.rmtree(self.nam)
+        make_nam_dir(self.nam, sources=True)
+        sel = tui.NamSelector(fx)
+        m = next(m for m in sel.models if m["stem"] == "pack_model")
+        m["name"] = "A name that is much too long for the display"
+        sel.cursor = sel.models.index(m)
+        sel.toggle()
+        self.assertFalse(sel.save())
+        self.assertIn("at most 14", sel.message)
+        self.assertFalse(os.path.exists(os.path.join(self.nam, "models", "pack_model.h")))
+
+    def test_calibrating_when_saving_levels_the_models(self):
+        self.sel.toggle()  # alpha off
+        self.assertTrue(self.sel.save(calibrate=True), self.sel.message)
+        self.assertIn("calibrated", self.sel.message)
+        self.assertIn("kOutputGain = 1.9953f", open(os.path.join(self.nam, "models", "beta.h")).read())   # 6 dB measured, +12 dB wanted: x 10^(6/20)
+        self.assertIn("kOutputGain = 1.0f", open(os.path.join(self.nam, "models", "alpha.h")).read())     # not selected: not touched
+        self.assertTrue(self.sel.save(calibrate=False))
+        self.assertNotIn("calibrated", self.sel.message)
+
+    def test_a_new_model_is_included_until_it_is_deselected(self):
+        self.sel.toggle()
+        self.assertTrue(self.sel.save())
+        shutil.copy(os.path.join(self.nam, "models", "beta.h"), os.path.join(self.nam, "models", "delta.h"))
+        self.assertEqual(tui.NamSelector(fx).selected, {"beta", "gamma", "delta"})
+
+
 class SelectorTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -366,12 +532,14 @@ class ChainTest(unittest.TestCase):
 class ScreenTest(unittest.TestCase):
     """The real screen, in a pseudo terminal of 24 x 80."""
 
-    def run_keys(self, keys, rows=24, cols=80):
+    def run_keys(self, keys, rows=24, cols=80, nam_sources=False):
         master, slave = pty.openpty()
         fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack("HHHH", rows, cols, 0, 0))
         self.root = tempfile.TemporaryDirectory()
         make_root(self.root.name)
-        env = dict(os.environ, TERM="xterm-256color", ESCDELAY="25", EFFECTS_TOOL_ROOT=self.root.name)
+        self.nam = tempfile.TemporaryDirectory()
+        make_nam_dir(os.path.join(self.nam.name, "Effect-Modules", "Nam"), sources=nam_sources)
+        env = dict(os.environ, TERM="xterm-256color", ESCDELAY="25", EFFECTS_TOOL_ROOT=self.root.name, EFFECTS_NAM_DIR=os.path.join(self.nam.name, "Effect-Modules", "Nam"))
         proc = subprocess.Popen([sys.executable, os.path.join(HERE, "effects.py"), "tui"], stdin=slave, stdout=slave, stderr=slave, env=env, close_fds=True)
         os.close(slave)
         out = b""
@@ -465,12 +633,85 @@ class ScreenTest(unittest.TestCase):
         self.assertIn("new EffectChain(", gen)
 
     def test_start_menu_has_configure_effects_and_a_placeholder_options_menu(self):
-        text, code = self.run_keys([b"q", b"j", b"\r", b"\r"], rows=24, cols=80)  # leave Configure effects, to Options, open it, Back
+        text, code = self.run_keys([b"q", b"j", b"j", b"\r", b"\r"], rows=24, cols=80)  # leave Configure effects, to Options (the third item), open it, Back
         self.assertEqual(code, 0)
         self.assertIn("Pedal setup", text)
         self.assertIn("Configure effects", text)
         self.assertIn("Options", text)
         self.assertIn("Back", text)
+
+    def test_nam_setup_lists_the_models_and_s_runs_update_models(self):
+        text, code = self.run_keys([b"q", b"j", b"\r", b"h", b"x", b" ", b"s", b"n", b"q"])  # NAM setup, help, close it, deselect the first model, save without calibrating, back
+        self.assertEqual(code, 0)
+        self.assertIn("NAM models in the firmware", text)
+        self.assertIn("Alpha", text)
+        self.assertIn("Gamma", text)
+        self.assertIn("NAM setup help", text)
+        self.assertIn("2 of 3 models", text)
+        self.assertIn("saved: models.config", text)
+        nam = os.path.join(self.nam.name, "Effect-Modules", "Nam")
+        self.assertIn("alpha=n", open(os.path.join(nam, "models.config")).read())
+        self.assertNotIn("alpha", open(os.path.join(nam, "models_list.inc")).read())
+
+    def test_nam_setup_converts_a_selected_new_model_when_saving(self):
+        keys = [b"q", b"j", b"\r", *[b"j"] * 3, b" ", b"\r", b"s", b"n", b"q"]  # NAM setup, down to the first new model (after the three installed), select it, accept its name, save (no calibration), back
+        text, code = self.run_keys(keys, nam_sources=True)
+        self.assertEqual(code, 0)
+        self.assertIn("new: amp1.nam", text)
+        self.assertIn("not usable", text)
+        self.assertIn("1 converted", text)
+        nam = os.path.join(self.nam.name, "Effect-Modules", "Nam")
+        self.assertTrue(os.path.exists(os.path.join(nam, "models", "cool_amp_1.h")))
+        self.assertIn("cool_amp_1.h", open(os.path.join(nam, "models_list.inc")).read())
+
+    def test_nam_setup_asks_for_the_name_and_makes_the_user_edit_a_long_one_down(self):
+        # the models are in file-name order: alpha, beta, gamma, then the new ones as found (amp1, pack's), bad and small are not usable
+        keys = [b"q", b"j", b"\r", *[b"j"] * 5, b" ",   # the zip's model (the suggestion is "Pack Gear - Pack Model", 22 characters)
+                b"\r",                                    # too long: Enter does nothing
+                *[b"\x7f"] * 13, b"\r",                   # edit it down to "Pack Gear" and accept
+                b"s", b"n", b"q"]
+        text, code = self.run_keys(keys, nam_sources=True)
+        self.assertEqual(code, 0)
+        self.assertIn("Name of the model", text)
+        self.assertIn("gear model:", text)
+        self.assertIn("Pack Gear - Pack Model", text)
+        self.assertIn("At most 14", text)
+        self.assertIn("1 converted", text)
+        header = open(os.path.join(self.nam.name, "Effect-Modules", "Nam", "models", "pack_model.h")).read()
+        self.assertIn('kName = "Pack Gear"', header)
+
+    def test_saving_asks_about_the_calibration_and_y_calibrates(self):
+        text, code = self.run_keys([b"q", b"j", b"\r", b" ", b"s", b"y", b"q"])  # alpha off, save with calibration
+        self.assertEqual(code, 0)
+        self.assertIn("Calibrate the output levels", text)
+        self.assertIn("about a minute", text)
+        self.assertIn("output levels calibrated", text)
+        self.assertIn("kOutputGain = 1.9953f", open(os.path.join(self.nam.name, "Effect-Modules", "Nam", "models", "gamma.h")).read())
+
+    def test_esc_at_the_calibration_question_does_not_save(self):
+        text, code = self.run_keys([b"q", b"j", b"\r", b" ", b"s", b"\x1b", b"q", b"n"])  # the question, Esc, then back: asks about the unsaved change, n
+        self.assertEqual(code, 0)
+        self.assertIn("not saved", text)
+        self.assertFalse(os.path.exists(os.path.join(self.nam.name, "Effect-Modules", "Nam", "models.config")))
+
+    def test_enter_does_nothing_while_the_name_is_too_long(self):
+        # Enter on the 22 character suggestion is ignored (the dialog stays, no second dialog); Esc then cancels: nothing selected, nothing to save
+        keys = [b"q", b"j", b"\r", *[b"j"] * 5, b" ", b"\r", b"\r", b"\x1b", b"q"]
+        text, code = self.run_keys(keys, nam_sources=True)
+        self.assertEqual(code, 0)
+        self.assertNotIn("Unsaved changes", text)
+        self.assertFalse(os.path.exists(os.path.join(self.nam.name, "Effect-Modules", "Nam", "models", "pack_model.h")))
+
+    def test_cancelling_the_name_dialog_does_not_select_the_model(self):
+        text, code = self.run_keys([b"q", b"j", b"\r", *[b"j"] * 3, b" ", b"\x1b", b"q"], nam_sources=True)  # no "Unsaved changes" when leaving
+        self.assertEqual(code, 0)
+        self.assertNotIn("Unsaved changes", text)
+
+    def test_nam_setup_asks_before_leaving_with_unsaved_changes(self):
+        text, code = self.run_keys([b"q", b"j", b"\r", b" ", b"q", b"n"])
+        self.assertEqual(code, 0)
+        self.assertIn("Unsaved changes", text)
+        self.assertFalse(os.path.exists(os.path.join(self.nam.name, "Effect-Modules", "Nam", "models.config")))
 
     def test_esc_leaves_configure_effects_for_the_start_menu(self):
         text, code = self.run_keys([b"\x1b"])  # Esc in Configure effects, then the final q quits the start menu

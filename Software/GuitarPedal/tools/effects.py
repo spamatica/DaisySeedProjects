@@ -27,6 +27,8 @@ CONFIG = os.path.join(ROOT, "effects.config")
 CHAINS = os.path.join(ROOT, "chains.json")
 PRESETS = os.path.join(ROOT, "configs")
 GEN = os.path.join(ROOT, "generated")
+NAM_DIR_DEFAULT = os.path.join(ROOT, "Effect-Modules", "Nam")
+NAM_DIR = os.environ.get("EFFECTS_NAM_DIR") or NAM_DIR_DEFAULT  # the NAM models and update_models.sh (the variable is for the tests)
 
 POOL_BYTES = {1: 48 * 384 * 384, 2: 48 * 512 * 512, 3: 48 * 640 * 640}  # the CloudSeed pool for 1, 2 and 3 engines (cloudseed_pool.cpp)
 REGIONS = ["dtcm", "ram_d2", "sram", "sdram"]

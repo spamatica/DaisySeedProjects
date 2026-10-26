@@ -6,6 +6,11 @@
 #   update_models.sh                   run by hand in a terminal: regenerates the list, then asks whether to calibrate the output gains
 #   update_models.sh --calibrate [dB]  regenerates the list and calibrates without asking
 #   update_models.sh --no-calibrate    regenerates the list only; this is what the Makefile and the host test scripts run
+#   update_models.sh --models LIST     only the models in LIST (file names without .h, separated by commas or spaces) go into the list; the
+#                                      options above can be combined with it. This is what `pedal_setup` (NAM setup) runs
+#
+# Which models are included, when --models is not given: those of models.config (one "name=y" or "name=n" line per model, written by
+# `pedal_setup`; a model that is not in it is included), and all of them if the file does not exist. The firmware needs at least one model.
 #
 # Calibration is optional: it measures every model on the host (tests/host/calibrate_nam.sh) and sets kOutputGain in each model file so that
 # all models give the same level, dB RMS (default +12) for the guitar-like test signal at the reference input level, at default settings with
@@ -14,20 +19,55 @@
 export LC_ALL=C # decimal points in the numbers, whatever the locale
 cd "$(dirname "$0")" || exit 1
 list=models_list.inc
+config=models.config
 target=12
-case "${1:-}" in
---calibrate) calibrate=1; [ -n "${2:-}" ] && target=$2 ;;
---no-calibrate) calibrate=0 ;;
-"") calibrate=ask ;;
-*) echo "usage: update_models.sh [--calibrate [target dB] | --no-calibrate]" >&2; exit 2 ;;
-esac
+calibrate=ask
+selected=
+have_selection=0
+usage() { echo "usage: update_models.sh [--calibrate [target dB] | --no-calibrate] [--models name,name,...]" >&2; exit 2; }
+while [ $# -gt 0 ]; do
+    case "$1" in
+    --calibrate)
+        calibrate=1
+        case "${2:-}" in [0-9]* | -[0-9]* | +[0-9]*) target=$2; shift ;; esac
+        ;;
+    --no-calibrate) calibrate=0 ;;
+    --models)
+        [ $# -ge 2 ] || usage
+        selected=$(echo "$2" | tr ',' ' ')
+        have_selection=1
+        shift
+        ;;
+    *) usage ;;
+    esac
+    shift
+done
 
-files=$(ls models/*.h 2>/dev/null | LC_ALL=C sort)
-for f in $files; do
+all=$(ls models/*.h 2>/dev/null | LC_ALL=C sort)
+for f in $all; do
     case "$(basename "$f" .h)" in
     *[!A-Za-z0-9_]*) echo "update_models.sh: $f: use only letters, digits and _ in the file name" >&2; exit 1 ;;
     esac
 done
+
+if [ $have_selection = 1 ]; then
+    files=
+    for name in $selected; do
+        [ -f "models/$name.h" ] || { echo "update_models.sh: there is no model models/$name.h" >&2; exit 1; }
+    done
+    for f in $all; do
+        stem=$(basename "$f" .h)
+        case " $selected " in *" $stem "*) files="$files $f" ;; esac
+    done
+else
+    files=
+    for f in $all; do
+        stem=$(basename "$f" .h)
+        if [ -f $config ] && grep -q "^$stem=n\$" $config; then continue; fi
+        files="$files $f"
+    done
+fi
+[ -n "$files" ] || { echo "update_models.sh: no model is selected (the firmware needs at least one)" >&2; exit 1; }
 
 tmp=$(mktemp)
 {

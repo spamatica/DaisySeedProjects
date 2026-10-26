@@ -30,7 +30,7 @@ Not every effect is compiled: memory is tight (see below). The selection is data
 - `generated/` (`effects.mk`, `defines.mk`, `effects_*.inc`) is **generated — do not edit by hand**. `make` regenerates it when the inputs change; `loaded_effects.h` includes the `.inc` files.
 - Effects with `license: gpl` (Dattorro, Earth) need `ALLOW_GPL=y` in `effects.config`.
 - To add an effect: write the module, add an entry to `effects.json` (sources, header, class, requirements), enable it, then `./pedal_setup measure`/`calibrate` after a build.
-- NAM models: one header per model in `Effect-Modules/Nam/models/`; `Effect-Modules/Nam/update_models.sh` regenerates `models_list.inc` (the Makefile and test runner call it automatically).
+- NAM models: one header per model in `Effect-Modules/Nam/models/`; `Effect-Modules/Nam/update_models.sh` regenerates `models_list.inc` (the Makefile and test runner call it automatically); which models are built in is `Effect-Modules/Nam/models.config` (`name=y|n`, written by `pedal_setup` > NAM setup, all included if absent), or `update_models.sh --models a,b,c`. New models are delivered as `.nam` or `.zip` files: put them in `Effect-Modules/Nam/models_nam/`; NAM setup converts the selected ones (`nam_to_cpp_array.py`; the display name is asked for, suggested from the .nam metadata name and gear_model, max 14 characters).
 
 ## Code layout
 

@@ -1,5 +1,5 @@
-"""The interactive, full-screen tool of tools/effects.py (curses; Python's standard library only). It starts with a menu: Configure effects (the effect selection below)
-and Options (a placeholder for now). q or Esc leaves a menu.
+"""The interactive, full-screen tool of tools/effects.py (curses; Python's standard library only). It starts with a menu: Configure effects (the effect selection below),
+NAM setup (which NAM amp models are built in, see NamSelector) and Options (a placeholder for now). q or Esc leaves a menu.
 
   Up/Down (or k/j), PgUp/PgDn, Home/End   move in the list of effects
   Space                                   select / deselect the effect under the cursor
@@ -18,6 +18,8 @@ The state and what it computes (`Selector`) do not touch the terminal, so it is 
 import copy
 import curses
 import os
+import re
+import subprocess
 
 REGION_SHORT = {"dtcm": "DTCM", "ram_d2": "RAM_D2", "sram": "Code", "sdram": "SDRAM"}
 
@@ -231,6 +233,244 @@ class Selector:
         return True
 
 
+class NamSelector:
+    """Which NAM amp models are built into the firmware: no curses in here.
+
+    The models are the files in Effect-Modules/Nam/models/ (one header per model, made from a .nam file by nam_to_cpp_array.py), plus the .nam and
+    .zip files (as delivered by TONE3000) in Effect-Modules/Nam/models_nam/ that have not been converted yet: selecting one of those converts it when
+    saved, and the display name is the name in the .nam file's metadata. The choice is kept in models.config (name=y or name=n) and passed to
+    update_models.sh, which writes models_list.inc."""
+
+    MAX_NAME = 14  # characters: the display is small (the MODEL choices are drawn with an auto-fit font)
+
+    def __init__(self, fx):
+        import json
+        import zipfile
+        self.fx = fx
+        self.dir = fx.NAM_DIR
+        self.models = []  # dicts: stem, name, weights (or None), state ("installed", "new" or "unsupported"), note, nam (the .nam file's bytes, for "new")
+        models_dir = os.path.join(self.dir, "models")
+        sources = set()
+        for f in sorted(os.listdir(models_dir)) if os.path.isdir(models_dir) else []:
+            if not f.endswith(".h"):
+                continue
+            text = open(os.path.join(models_dir, f)).read()
+            name = re.search(r'kName\s*=\s*"([^"]*)"', text)
+            weights = re.search(r"\((\d+) weights", text)
+            source = re.search(r"source: (.*)", text)
+            if source:
+                sources.add(source.group(1).strip())
+            self.models.append({"stem": f[:-2], "name": name.group(1) if name else f[:-2], "weights": int(weights.group(1)) if weights else None,
+                                "state": "installed", "note": "", "nam": None, "source": source.group(1).strip() if source else ""})
+        self.expected_weights = None
+        runtime = os.path.join(self.dir, "nam_a2_runtime.h")
+        if os.path.exists(runtime):
+            m = re.search(r"kA2WeightCount\s*=\s*(\d+)", open(runtime).read())
+            self.expected_weights = int(m.group(1)) if m else None
+        self.converter = None
+        # the .nam and .zip files not converted yet
+        src_dir = os.path.join(self.dir, "models_nam")
+        found = []  # (shown file name, the .nam file's own name, its bytes)
+        for f in sorted(os.listdir(src_dir)) if os.path.isdir(src_dir) else []:
+            path = os.path.join(src_dir, f)
+            if f.lower().endswith(".nam"):
+                found.append((f, f, open(path, "rb").read()))
+            elif f.lower().endswith(".zip"):
+                try:
+                    with zipfile.ZipFile(path) as z:
+                        for member in sorted(z.namelist()):
+                            if member.lower().endswith(".nam"):
+                                found.append((f, os.path.basename(member), z.read(member)))
+                except (zipfile.BadZipFile, OSError):
+                    self.models.append({"stem": "", "name": f, "weights": None, "state": "unsupported", "note": "not a readable zip file", "nam": None, "source": ""})
+        used = {m["stem"] for m in self.models}
+        for shown, nam_name, data in found:
+            if any(src == nam_name or src.startswith(nam_name + " (") for src in sources):  # (the comment can add what was picked, "... .nam (SlimmableContainer submodel 0...")
+                continue  # converted already
+            entry = {"stem": "", "name": os.path.splitext(nam_name)[0], "weights": None, "state": "unsupported", "note": "", "nam": data, "source": nam_name, "from": shown}
+            try:
+                d = json.loads(data)
+                meta = d.get("metadata") or {}
+                entry["name"] = self.clean(meta.get("name") or entry["name"])
+                entry["gear_model"] = self.clean(meta.get("gear_model") or "")
+                entry["meta_name"] = entry["name"]
+                entry["weights"] = len(self.weights_of(d))
+                if self.expected_weights and entry["weights"] != self.expected_weights:
+                    entry["note"] = "needs %d weights (an A2 Nano model), this has %d" % (self.expected_weights, entry["weights"])
+                else:
+                    entry["state"] = "new"
+            except (ValueError, KeyError, TypeError) as e:
+                entry["note"] = "not a supported .nam file (%s)" % e
+            base = re.sub(r"[^A-Za-z0-9]+", "_", entry["name"]).strip("_").lower()[:40] or "model"
+            stem, n = base, 2
+            while stem in used:
+                stem = "%s_%d" % (base, n)
+                n += 1
+            used.add(stem)
+            entry["stem"] = stem
+            self.models.append(entry)
+        saved = self.read_config()
+        self.selected = {m["stem"] for m in self.models if m["state"] == "installed" and saved.get(m["stem"], True)}  # a model that is not in the file is included
+        self.cursor = 0
+        self.top = 0
+        self.dirty = False
+        self.message = "" if self.models else "no models: put .nam or .zip files in %s" % os.path.join(self.dir, "models_nam")
+
+    @staticmethod
+    def clean(text):
+        """A name for the C string in the model file: no quotes or backslashes, one line."""
+        return " ".join(str(text).replace('"', "'").replace("\\", "/").split())
+
+    def suggested_name(self, m):
+        """What the name dialog starts with: the gear model and the name from the .nam file together, to be edited down to MAX_NAME characters."""
+        gear, name = m.get("gear_model", ""), m["name"]
+        return name if not gear or gear == name or gear in name else (gear if name in gear else "%s - %s" % (gear, name))
+
+    def name_problem(self, name):
+        if not name.strip():
+            return "the name cannot be empty"
+        if len(self.clean(name)) > self.MAX_NAME:
+            return "%d characters, at most %d fit the display" % (len(self.clean(name)), self.MAX_NAME)
+        return ""
+
+    def rename(self, m, name):
+        """Sets the display name of a new model; returns the problem (empty if fine, then the name is set)."""
+        problem = self.name_problem(name)
+        if not problem:
+            m["name"] = self.clean(name)
+            m["named"] = True
+        return problem
+
+    @staticmethod
+    def weights_of(d):
+        """The weights of a .nam file: for a SlimmableContainer the smallest submodel (what nam_to_cpp_array.py picks)."""
+        arch = d.get("architecture", "")
+        if arch == "SlimmableContainer":
+            sub = min(d["config"]["submodels"], key=lambda s: abs(s["max_value"] - 0.5))
+            weights = sub["model"].get("weights")
+        elif arch == "WaveNet":
+            weights = d.get("weights")
+        else:
+            raise ValueError("architecture %r" % arch)
+        if not isinstance(weights, list):
+            raise ValueError("no weights")
+        return weights
+
+    def config_path(self):
+        return os.path.join(self.dir, "models.config")
+
+    def read_config(self):
+        saved = {}
+        if os.path.exists(self.config_path()):
+            for line in open(self.config_path()):
+                m = re.match(r"\s*([A-Za-z0-9_]+)=([yn])\s*$", line)
+                if m:
+                    saved[m.group(1)] = m.group(2) == "y"
+        return saved
+
+    def current(self):
+        return self.models[self.cursor]
+
+    def move(self, delta, page=1):
+        self.cursor = max(0, min(len(self.models) - 1, self.cursor + delta * page))
+
+    def toggle(self):
+        if not self.models:
+            return
+        m = self.current()
+        if m["state"] == "unsupported":
+            self.message = "cannot be used: " + m["note"]
+            return
+        self.selected.symmetric_difference_update({m["stem"]})
+        self.dirty = True
+        self.message = ""
+
+    def set_all(self, on):
+        self.selected = {m["stem"] for m in self.models if m["state"] != "unsupported"} if on else set()
+        self.dirty = True
+        self.message = ""
+
+    def kilobytes(self, weights):
+        return None if weights is None else weights * 4 / 1024.0  # the weights are 4-byte floats in the program memory
+
+    def total_kb(self):
+        return sum(self.kilobytes(m["weights"]) or 0 for m in self.models if m["stem"] in self.selected)
+
+    def new_selected(self):
+        return [m for m in self.models if m["state"] == "new" and m["stem"] in self.selected]
+
+    def status(self):
+        """The text of the status bar and its severity (0 fine, 2 cannot be saved)."""
+        text = "%s%d of %d models, %.0f KB of weights" % ("* " if self.dirty else "", len(self.selected), len(self.models), self.total_kb())
+        if self.new_selected():
+            text += ", %d to convert" % len(self.new_selected())
+        if not self.selected:
+            return text + "  | at least one is needed", 2
+        return text, 0
+
+    def convert(self, m):
+        """Writes models/<stem>.h from the .nam file of a new model (the display name is the name in its metadata)."""
+        import importlib.util
+        import json
+        if self.converter is None:
+            spec = importlib.util.spec_from_file_location("nam_to_cpp_array", os.path.join(self.dir, "nam_to_cpp_array.py"))
+            self.converter = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(self.converter)
+        weights = self.weights_of(json.loads(m["nam"]))
+        os.makedirs(os.path.join(self.dir, "models"), exist_ok=True)
+        with open(os.path.join(self.dir, "models", m["stem"] + ".h"), "w") as f:
+            f.write(self.converter.to_model_file(m["name"], weights, m["source"], m["stem"]))
+        m["state"], m["nam"] = "installed", None
+
+    def problem(self):
+        """What stops the choice from being saved (empty if nothing)."""
+        if not self.selected:
+            return "the firmware needs at least one model"
+        for m in self.new_selected():
+            problem = self.name_problem(m["name"])
+            if problem:
+                return "the name of %s: %s (e: edit it)" % (m["stem"], problem)
+        return ""
+
+    def save(self, calibrate=False):
+        """Converts the selected new models, writes models.config and runs update_models.sh with the selected models (it writes models_list.inc).
+        With calibrate it also levels the output gains of the models (update_models.sh --calibrate: the default target, about a minute)."""
+        problem = self.problem()
+        if problem:
+            self.message = "cannot save: " + problem
+            return False
+        converted = 0
+        for m in self.new_selected():
+            try:
+                self.convert(m)
+                converted += 1
+            except Exception as e:  # a model that cannot be converted must not stop the others, but nothing is built from a half-done choice
+                self.message = "could not convert %s: %s" % (m["name"], e)
+                return False
+        names = [m["stem"] for m in self.models if m["stem"] in self.selected]
+        with open(self.config_path(), "w") as f:
+            f.write("# Which NAM models are built in, edited with pedal_setup (NAM setup). Read by update_models.sh; a model that is not here is included.\n")
+            for m in self.models:
+                if m["state"] == "installed":
+                    f.write("%s=%s\n" % (m["stem"], "y" if m["stem"] in self.selected else "n"))
+        try:
+            result = subprocess.run(["sh", os.path.join(self.dir, "update_models.sh"), "--calibrate" if calibrate else "--no-calibrate", "--models", ",".join(names)],
+                                    capture_output=True, text=True, timeout=900 if calibrate else 120)
+        except (OSError, subprocess.SubprocessError) as e:
+            self.message = "update_models.sh could not be run: %s" % e
+            return False
+        if result.returncode != 0:
+            self.message = "update_models.sh failed: " + (result.stderr.strip() or result.stdout.strip() or "exit %d" % result.returncode).splitlines()[-1]
+            return False
+        self.dirty = False
+        extra = ""
+        if calibrate:
+            extra = ", output levels calibrated"
+        elif converted:
+            extra = ", %d converted (level 1.0: run update_models.sh --calibrate)" % converted
+        self.message = "saved: models.config and models_list.inc (%d models%s); rebuild to use them" % (len(names), extra)
+        return True
+
 class ChainEditor:
     """One chain being edited. Slots and mappings refer to each other by index, so every change that moves or removes a slot fixes the references: no curses in here."""
 
@@ -394,9 +634,11 @@ def _init_colors():
             bg = -1
         except curses.error:
             bg = curses.COLOR_BLACK
-        for n, color in ((1, curses.COLOR_GREEN), (2, curses.COLOR_YELLOW), (3, curses.COLOR_RED), (4, curses.COLOR_CYAN)):
+        for n, color in ((1, curses.COLOR_GREEN), (2, curses.COLOR_YELLOW), (3, curses.COLOR_RED), (4, curses.COLOR_CYAN), (5, curses.COLOR_MAGENTA), (6, curses.COLOR_BLUE)):
             curses.init_pair(n, color, bg)
             pairs[n] = curses.color_pair(n)
+        curses.init_pair(7, curses.COLOR_WHITE, curses.COLOR_BLUE)  # the field of a text prompt: light text on a dark background
+        curses.init_pair(8, curses.COLOR_WHITE, 22 if curses.COLORS >= 256 else curses.COLOR_GREEN)  # the same while the text is acceptable (dark green)
     return pairs
 
 
@@ -498,29 +740,48 @@ def draw_status(stdscr, sel, colors, hint="h: help "):
     _put(stdscr, h - 1, 0, bar.ljust(w - 1), attr)
 
 
-def _prompt(stdscr, title, initial="", hint=""):
-    """A line of text to edit; returns the text, or None if cancelled with Esc."""
+def _prompt(stdscr, title, initial="", hint="", info=(), valid=None):
+    """A line of text to edit (with optional lines of information above it); returns the text, or None if cancelled with Esc.
+    The field is a bar of its own colour with the terminal's cursor at the end of the text; with `valid` (text -> bool) it is dark green while the
+    text is acceptable and blue otherwise, and Enter does nothing until it is acceptable."""
     text = initial
-    while True:
-        h, w = stdscr.getmaxyx()
-        width = min(w - 2, max(46, len(title) + 6, len(hint) + 6))
-        win = curses.newwin(5, width, max(0, (h - 5) // 2), max(0, (w - width) // 2))
-        win.keypad(True)
-        win.box()
-        _put(win, 0, 2, " %s " % title, curses.A_BOLD)
-        _put(win, 2, 2, (text + "_")[-(width - 5):])
-        if hint:
-            _put(win, 3, 2, hint)
-        win.refresh()
-        k = win.getch()
-        if k in (10, 13, curses.KEY_ENTER):
-            return text
-        if k == 27:
-            return None
-        if k in (curses.KEY_BACKSPACE, 127, 8):
-            text = text[:-1]
-        elif 32 <= k < 127:
-            text += chr(k)
+    try:
+        previous = curses.curs_set(1)  # a real cursor at the edit point
+    except curses.error:
+        previous = None
+    try:
+        while True:
+            h, w = stdscr.getmaxyx()
+            width = min(w - 2, max(46, len(title) + 6, len(hint) + 6, *[len(l) + 6 for l in info]))
+            height = 5 + len(info)
+            win = curses.newwin(height, width, max(0, (h - height) // 2), max(0, (w - width) // 2))
+            win.keypad(True)
+            win.box()
+            _put(win, 0, 2, " %s " % title, curses.A_BOLD)
+            for n, line in enumerate(info):
+                _put(win, 1 + n, 2, line)
+            row = 2 + len(info)
+            shown = text[-(width - 7):]  # the end of the text, so the cursor is always in view
+            _put(win, row, 2, (" " + shown).ljust(width - 4), (curses.color_pair(8 if valid and valid(text) else 7) if curses.has_colors() else curses.A_REVERSE) | curses.A_BOLD)
+            if previous is None:
+                _put(win, row, 3 + len(shown), "_", curses.A_BOLD)  # no cursor on this terminal: draw one
+            if hint:
+                _put(win, 3 + len(info), 2, hint)
+            win.move(row, min(3 + len(shown), width - 3))
+            win.refresh()
+            k = win.getch()
+            if k in (10, 13, curses.KEY_ENTER):
+                if valid is None or valid(text):
+                    return text  # (with `valid`, Enter does nothing until the text is acceptable)
+            elif k == 27:
+                return None
+            elif k in (curses.KEY_BACKSPACE, 127, 8):
+                text = text[:-1]
+            elif 32 <= k < 127:
+                text += chr(k)
+    finally:
+        if previous is not None:
+            curses.curs_set(previous)
 
 
 def _number(stdscr, title, initial, low, high, blank_ok=True, hint=""):
@@ -844,6 +1105,160 @@ def effects_screen(stdscr, fx, colors):
             pass
 
 
+NAM_HELP = [
+    "Choose which NAM amp models are built into the firmware. The list has the models that are",
+    "installed (the files in Effect-Modules/Nam/models/) and the .nam and .zip files in",
+    "Effect-Modules/Nam/models_nam/ that have not been installed yet ('new'; put the files from",
+    "TONE3000 there). Every model takes program memory (about 7 KB of weights each); the MODEL",
+    "choices of the NAM effect are the selected models in file-name order.",
+    "",
+    "  Up / Down, k / j     move          PgUp / PgDn, Home / End   jump",
+    "  Space                select or deselect the model; for a new model it asks for the display name first:",
+    "                       the gear model and the name from the .nam file are listed, edit the suggestion down",
+    "                       to at most 14 characters",
+    "  e                    edit the display name of a new model again",
+    "  a                    select all the models          x   deselect all (at least one is needed to save)",
+    "  s                    save: converts the selected new models (with the names you gave them),",
+    "                       writes models.config and runs update_models.sh, which rewrites models_list.inc.",
+    "                       It asks first if the volume of the models should be calibrated too (a minute)",
+    "  h                    this help               q or Esc   back to the start menu",
+    "",
+    "A new model starts at output level 1.0 unless you calibrate when saving (or run",
+    "Effect-Modules/Nam/update_models.sh --calibrate). Changing the models changes the MODEL",
+    "choices of the NAM effect: a saved NAM preset may point at another model afterwards.",
+    "Only A2 Nano models can be used (they have the same number of weights); others are shown",
+    "as 'not usable'. Rebuild to use the new list.",
+    "",
+    "A '*' means unsaved changes.   Press any key to close.",
+]
+
+
+def draw_nam(stdscr, sel, colors):
+    """The NAM screen looks like the effect list in other colors: magenta (and a title bar) instead of green."""
+    stdscr.erase()
+    h, w = stdscr.getmaxyx()
+    if h < 6 or w < 40:
+        _put(stdscr, 0, 0, "The terminal is too small (needs 40x6).")
+        stdscr.refresh()
+        return
+    _put(stdscr, 0, 0, " NAM models in the firmware".ljust(w - 1), curses.A_REVERSE | colors.get(5, 0) | curses.A_BOLD)
+    _put(stdscr, 1, 0, "      " + ("%-20s %-26s %8s  %s" % ("model", "name", "weights", "source"))[0:], curses.A_UNDERLINE)
+    rows = h - 5
+    if sel.cursor < sel.top:
+        sel.top = sel.cursor
+    if sel.cursor >= sel.top + rows:
+        sel.top = sel.cursor - rows + 1
+    for row in range(rows):
+        i = sel.top + row
+        if i >= len(sel.models):
+            break
+        m = sel.models[i]
+        on = m["stem"] in sel.selected
+        kb = sel.kilobytes(m["weights"])
+        tag = {"installed": "installed", "new": "new: " + m.get("from", ""), "unsupported": "not usable: " + m["note"]}[m["state"]]
+        line = " %s %-20s %-26s %8s  %s" % ("[x]" if on else ("[-]" if m["state"] == "unsupported" else "[ ]"), m["stem"][:20], m["name"][:26], "%.1f K" % kb if kb is not None else "?", tag)
+        attr = curses.A_REVERSE if i == sel.cursor else 0
+        if on:
+            attr |= curses.A_BOLD | colors.get(5, 0)
+        elif m["state"] == "unsupported":
+            attr |= curses.A_DIM
+        _put(stdscr, row + 2, 0, line.ljust(w - 1), attr)
+    if sel.top > 0:
+        _put(stdscr, 1, w - 3, "^")
+    if sel.top + rows < len(sel.models):
+        _put(stdscr, h - 4, w - 3, "v")
+    _put(stdscr, h - 3, 1, sel.message, colors.get(6, 0) | curses.A_BOLD)
+    text, sev = sel.status()
+    hint = "h: help "
+    bar = (" " + text).ljust(w - 1 - len(hint)) + hint
+    _put(stdscr, h - 1, 0, bar.ljust(w - 1), curses.A_REVERSE | (colors.get(5, 0) if sev == 0 else colors.get(3, 0)))
+    stdscr.refresh()
+
+
+def save_nam(stdscr, colors, sel):
+    """Saves the NAM choice; first asks whether the output levels of the models should be calibrated too (it takes a while)."""
+    problem = sel.problem()
+    if problem:
+        sel.message = "cannot save: " + problem
+        return False
+    answer = _popup(stdscr, ["Calibrate the output levels of the models too?", "",
+                             "It makes all the models equally loud (the default level, +12 dB). It builds and runs a",
+                             "test on this computer for every model and takes some time: about a minute.", "",
+                             "  y  save and calibrate     n  save without calibrating     Esc  do not save"], "Volume calibration", colors.get(5, 0))
+    if answer not in (ord("y"), ord("Y"), ord("n"), ord("N")):
+        sel.message = "not saved"
+        return False
+    calibrate = answer in (ord("y"), ord("Y"))
+    sel.message = "calibrating the levels of the models, this takes about a minute..." if calibrate else "running update_models.sh..."
+    draw_nam(stdscr, sel, colors)
+    return sel.save(calibrate)
+
+
+def ask_name(stdscr, sel, m):
+    """Asks for the name of a new model, starting with the gear model and the name in the .nam file together; it has to be edited down to
+    NamSelector.MAX_NAME characters (Enter does nothing until it is: the field turns green then). Returns False if cancelled."""
+    text = m["name"] if m.get("named") else sel.suggested_name(m)
+    info = ["name in the file:  " + m.get("meta_name", m["name"]), "gear model:        " + (m.get("gear_model") or "-")]
+    hint = "At most %d characters (the display is small); Enter when green, Esc cancels" % sel.MAX_NAME
+    answer = _prompt(stdscr, "Name of the model in the NAM effect", text, hint, info, valid=lambda t: not sel.name_problem(t))
+    if answer is None:
+        return False
+    sel.rename(m, answer)
+    return True
+
+
+def nam_screen(stdscr, fx, colors):
+    """NAM setup: which NAM models are built in. Returns to the start menu on quit."""
+    sel = NamSelector(fx)
+    while True:
+        draw_nam(stdscr, sel, colors)
+        key = stdscr.getch()
+        h, _ = stdscr.getmaxyx()
+        page = max(1, h - 6)
+        if key in (curses.KEY_UP, ord("k")):
+            sel.move(-1)
+        elif key in (curses.KEY_DOWN, ord("j")):
+            sel.move(1)
+        elif key == curses.KEY_PPAGE:
+            sel.move(-1, page)
+        elif key == curses.KEY_NPAGE:
+            sel.move(1, page)
+        elif key == curses.KEY_HOME:
+            sel.cursor = 0
+        elif key == curses.KEY_END:
+            sel.cursor = max(0, len(sel.models) - 1)
+        elif key == ord(" "):
+            m = sel.current() if sel.models else None
+            if m and m["state"] == "new" and m["stem"] not in sel.selected and not ask_name(stdscr, sel, m):
+                continue  # the name dialog was cancelled: not selected
+            sel.toggle()
+        elif key == ord("e"):
+            m = sel.current() if sel.models else None
+            if m and m["state"] == "new":
+                ask_name(stdscr, sel, m)
+            elif m:
+                sel.message = "only the name of a new model can be edited (an installed model has its name in its file)"
+        elif key == ord("a"):
+            sel.set_all(True)
+        elif key == ord("x"):
+            sel.set_all(False)
+        elif key == ord("s"):
+            save_nam(stdscr, colors, sel)
+        elif key in (ord("h"), ord("?")):
+            _popup(stdscr, NAM_HELP, "NAM setup help", colors.get(5, 0))
+        elif key in (ord("q"), 27):
+            if not sel.dirty:
+                return
+            answer = ask_save(stdscr)
+            if answer in (ord("y"), ord("Y")):
+                if save_nam(stdscr, colors, sel):
+                    return
+            elif answer in (ord("n"), ord("N")):
+                return
+        elif key == curses.KEY_RESIZE:
+            pass
+
+
 def menu(stdscr, title, items, hint=""):
     """A full-screen menu of (label, action) items. Enter runs the action of the item under the cursor; Esc or q leaves the menu."""
     pos = 0
@@ -877,6 +1292,7 @@ def loop(stdscr, fx):
     stdscr.keypad(True)
     colors = _init_colors()
     menu(stdscr, "Pedal setup", [("Configure effects", lambda: effects_screen(stdscr, fx, colors)),
+                                 ("NAM setup", lambda: nam_screen(stdscr, fx, colors)),
                                  ("Options", lambda: options_screen(stdscr))], "Up/Down: move   Enter: select   q: quit")
 
 
