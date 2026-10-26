@@ -415,7 +415,7 @@ class ChainTest(unittest.TestCase):
         self.ed.add_slot("modulated_tremolo")
         self.ed.add_slot("multi_delay")
         tags = [s["tag"] for s in self.chain["slots"]]
-        self.assertTrue(all(0 < len(t) <= 2 for t in tags))
+        self.assertTrue(all(0 < len(t) <= 3 for t in tags))
         self.assertEqual(len(set(tags)), 2)
 
     def test_deleting_and_moving_a_slot_fixes_the_references(self):

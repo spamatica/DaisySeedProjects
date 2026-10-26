@@ -274,8 +274,8 @@ def chain_problems(chain, enabled, chains, m, mem=None):
             problems.append("slot %d: %s cannot be chained: %s" % (n + 1, e["id"], why))
         if not sl.get("tag", "").strip():
             problems.append("slot %d: no tag" % (n + 1))
-        elif len(sl["tag"]) > 2:
-            problems.append("slot %d: the tag %r is longer than 2 characters" % (n + 1, sl["tag"]))
+        elif len(sl["tag"]) > 3:
+            problems.append("slot %d: the tag %r is longer than 3 characters" % (n + 1, sl["tag"]))
         elif sl["tag"] in tags:
             problems.append("slot %d: the tag %r is used twice" % (n + 1, sl["tag"]))
         tags.add(sl.get("tag"))

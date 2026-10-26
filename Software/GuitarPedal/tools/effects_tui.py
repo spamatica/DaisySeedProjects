@@ -536,16 +536,19 @@ class ChainEditor:
         self.touch()
 
     def default_tag(self, effect_id):
+        """A suggested tag of up to three characters: the first letters of the effect's name ("auto_filter" gives Afi, "booster" gives Boo)."""
         used = {sl["tag"] for sl in self.chain["slots"]}
         words = [w for w in effect_id.replace("-", "_").split("_") if w]
-        candidates = [("".join(w[0] for w in words[:2]) if len(words) > 1 else effect_id[:2]).title(), effect_id[:2].title(), effect_id[0].upper() + effect_id[-1]]
+        if len(words) > 1 and words[0] == "funbox":
+            words = words[1:]  # the FunBox ports: the name of the port (funbox-uranus gives Ura)
+        candidates = [(words[0][0] + words[1][:2]).title() if len(words) > 1 else "", words[0][:3].title(), (effect_id[0] + effect_id[-2:]).title()]
         for c in candidates:
-            if c not in used:
+            if c and c not in used:
                 return c
-        for n in range(10, 100):
+        for n in range(100, 1000):
             if str(n) not in used:
                 return str(n)
-        return "xx"
+        return "xxx"
 
     def chainable(self):
         return [e for e in self.sel.effects if self.fx.chain_blocked(e, self.sel.m) is None]
@@ -829,8 +832,8 @@ def _checklist(stdscr, title, items, checked):
 
 CHAIN_HELP = [
     "A chain combines two or more effects into one menu entry: the audio goes through",
-    "them in order, all their parameters are in one menu (tagged with the slot's two",
-    "character tag, like \"Tr Depth\"), and the six knobs and MIDI CCs are wired as you say.",
+    "them in order, all their parameters are in one menu (tagged with the slot's three",
+    "character tag, like \"Tre Depth\"), and the six knobs and MIDI CCs are wired as you say.",
     "",
     "  Up / Down     move                   Enter   edit the row under the cursor",
     "  a             add an effect or a mapping (by where the cursor is)",
@@ -845,7 +848,9 @@ CHAIN_HELP = [
     "exist once: in a chain it cannot also be enabled on its own.",
     "",
     "On the pedal, a chain of two or more effects also has a Switches parameter in its menu:",
-    "1+2, 1+3 or 2+3 puts those two effects on the right and left footswitches (each switches",
+    "a choice like 3+1 puts two effects on the left and right footswitches, named left to right",
+    "(3+1: effect 3 on the left footswitch, effect 1 on the right; there is a choice for every",
+    "pair of effects in the chain, however many it has; each switches",
     "its effect on and off, and its LED shows it), overriding the footswitch settings above;",
     "Normal (the default) keeps them. See the user manual (Footswitches and LEDs).",
     "",
@@ -913,9 +918,9 @@ def _add_slot(stdscr, ed):
     if pick is None:
         return
     effect_id = pick.split()[0]
-    tag = _prompt(stdscr, "Tag (2 characters, in front of its parameter names)", ed.default_tag(effect_id))
+    tag = _prompt(stdscr, "Tag (3 characters, in front of its parameter names)", ed.default_tag(effect_id))
     if tag is not None:
-        ed.add_slot(effect_id, tag.strip()[:2])
+        ed.add_slot(effect_id, tag.strip()[:3])
 
 
 def _add_mapping(stdscr, ed):
@@ -963,9 +968,9 @@ def _edit_row(stdscr, ed, kind, idx):
     elif kind == "slot":
         pick = _choose(stdscr, "Edit", ["tag: " + c["slots"][idx]["tag"], "effect: " + c["slots"][idx]["effect"]])
         if pick and pick.startswith("tag"):
-            tag = _prompt(stdscr, "Tag (2 characters)", c["slots"][idx]["tag"])
+            tag = _prompt(stdscr, "Tag (3 characters)", c["slots"][idx]["tag"])
             if tag is not None:
-                ed.set_tag(idx, tag.strip()[:2])
+                ed.set_tag(idx, tag.strip()[:3])
         elif pick:
             eff = _choose(stdscr, "Effect", ["%-18s %s" % (e["id"], e.get("note", "")) for e in ed.chainable()])
             if eff:

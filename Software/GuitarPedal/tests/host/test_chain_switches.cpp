@@ -23,12 +23,42 @@ static bool is(Assignment a, int bypass, int alternate) { return a.bypassSlot ==
 int main() {
     std::printf("Which slots the footswitches get:\n");
     check(!Resolve(NORMAL, 3).Active(), "Normal: the footswitches work as usual");
-    check(is(Resolve(SLOTS_1_2, 2), 0, 1) && is(Resolve(SLOTS_1_2, 3), 0, 1), "1+2: right = slot 1, left = slot 2 (chains of two and three)");
-    check(is(Resolve(SLOTS_1_3, 3), 0, 2), "1+3: right = slot 1, left = slot 3");
-    check(is(Resolve(SLOTS_2_3, 3), 1, 2), "2+3: right = slot 2, left = slot 3");
-    check(!Resolve(SLOTS_1_3, 2).Active() && !Resolve(SLOTS_2_3, 2).Active(), "1+3 and 2+3 on a chain of two: as usual");
-    check(!Resolve(SLOTS_1_2, 0).Active() && !Resolve(SLOTS_1_2, 1).Active(), "a plain effect (no slots) or a chain of one: as usual");
-    check(!Resolve(-1, 3).Active() && !Resolve(MODE_COUNT, 3).Active() && !Resolve(1000, 3).Active(), "an unknown mode (corrupt settings): as usual");
+    check(is(Resolve(SLOTS_2_1, 2), 0, 1) && is(Resolve(SLOTS_2_1, 3), 0, 1), "2+1 (left, right): right = slot 1, left = slot 2 (chains of two and three)");
+    check(is(Resolve(SLOTS_3_1, 3), 0, 2), "3+1: right = slot 1, left = slot 3");
+    check(is(Resolve(SLOTS_3_2, 3), 1, 2), "3+2: right = slot 2, left = slot 3");
+    check(!Resolve(SLOTS_3_1, 2).Active() && !Resolve(SLOTS_3_2, 2).Active(), "3+1 and 3+2 on a chain of two: as usual");
+    check(!Resolve(SLOTS_2_1, 0).Active() && !Resolve(SLOTS_2_1, 1).Active(), "a plain effect (no slots) or a chain of one: as usual");
+    check(!Resolve(-1, 3).Active() && !Resolve(ModeCount(3), 3).Active() && !Resolve(1000, 3).Active(), "an unknown mode (corrupt settings): as usual");
+
+    std::printf("\nAny pair of slots of a chain of any size:\n");
+    check(ModeCount(0) == 1 && ModeCount(1) == 1 && ModeCount(2) == 2 && ModeCount(3) == 4 && ModeCount(4) == 7 && ModeCount(5) == 11 && ModeCount(8) == 29,
+          "a chain of n slots has 1 + n(n-1)/2 modes (1, 1, 2, 4, 7, 11, ... 29 for eight)");
+    {
+        // every pair of slots of chains of 2 to 8 slots exactly once: the right slot below the left one, both inside the chain, in the order of the names
+        bool ok = true, ordered = true;
+        for (int n = 2; n <= 8; n++) {
+            std::vector<int> seen(n * n, 0);
+            int lastLeft = 0, lastRight = -1;
+            for (int mode = 1; mode < ModeCount(n); mode++) {
+                const Assignment a = Resolve(mode, n);
+                ok = ok && a.Active() && a.bypassSlot >= 0 && a.bypassSlot < a.alternateSlot && a.alternateSlot < n && ++seen[a.alternateSlot * n + a.bypassSlot] == 1;
+                ordered = ordered && (a.alternateSlot > lastLeft || (a.alternateSlot == lastLeft && a.bypassSlot > lastRight));
+                lastLeft = a.alternateSlot;
+                lastRight = a.bypassSlot;
+            }
+            ok = ok && !Resolve(ModeCount(n), n).Active();
+        }
+        check(ok, "chains of 2 to 8 slots: every mode is a different pair, the right slot below the left one, and the next number is not a mode");
+        check(ordered, "the modes are ordered by the left slot and then the right slot (a mode keeps its number when slots are added)");
+        check(is(Resolve(4, 4), 0, 3) && is(Resolve(5, 4), 1, 3) && is(Resolve(6, 4), 2, 3) && !Resolve(4, 3).Active(), "4+1, 4+2 and 4+3 are slot 4 on the left with slot 1, 2 or 3 on the right (not in a chain of three)");
+        char name[24];
+        std::string names;
+        for (int mode = 0; mode < ModeCount(5); mode++) {
+            ModeName(mode, name, sizeof name);
+            names += std::string(mode ? " " : "") + name;
+        }
+        check(names == "Normal 2+1 3+1 3+2 4+1 4+2 4+3 5+1 5+2 5+3 5+4", "the names of a chain of five, left to right");
+    }
 
     std::printf("\nThe slots of an effect chain:\n");
     EffectChain chain("Test", {{"Sc", new ScreamerModule()}, {"Wf", new WavefolderModule()}, {"Ts", new TapeSatModule()}}, {});
@@ -65,20 +95,33 @@ int main() {
     {
         const int sw = 3; // after the three On parameters
         check(std::string(chain.GetParameterName(sw)) == "Switches" && chain.GetParameterType(sw) == ParameterValueType::Binned &&
-                  chain.GetParameterBinCount(sw) == 4 && std::string(chain.GetParameterBinNames(sw)[3]) == "2+3",
-              "a chain of three has Switches after its On parameters, with Normal, 1+2, 1+3 and 2+3");
+                  chain.GetParameterBinCount(sw) == 4 && std::string(chain.GetParameterBinNames(sw)[1]) == "2+1" && std::string(chain.GetParameterBinNames(sw)[2]) == "3+1" &&
+                  std::string(chain.GetParameterBinNames(sw)[3]) == "3+2",
+              "a chain of three has Switches after its On parameters, with Normal, 2+1, 3+1 and 3+2 (left switch first)");
         check(!chain.GetFootswitchSlots().Active() && !plain.GetFootswitchSlots().Active(), "Switches starts at Normal; a plain effect never has footswitch slots");
-        chain.SetParameterRaw(sw, SLOTS_2_3);
-        check(is(chain.GetFootswitchSlots(), 1, 2), "Switches 2+3: right = slot 2, left = slot 3");
-        chain.SetParameterRaw(sw, SLOTS_1_3);
-        check(is(chain.GetFootswitchSlots(), 0, 2), "Switches 1+3: right = slot 1, left = slot 3");
+        chain.SetParameterRaw(sw, SLOTS_3_2);
+        check(is(chain.GetFootswitchSlots(), 1, 2), "Switches 3+2: right = slot 2, left = slot 3");
+        chain.SetParameterRaw(sw, SLOTS_3_1);
+        check(is(chain.GetFootswitchSlots(), 0, 2), "Switches 3+1: right = slot 1, left = slot 3");
         check(std::string(chain.GetParameterName(sw + 1)).rfind("Sc ", 0) == 0, "the children's parameters follow it (the first is the Screamer's, tagged Sc)");
 
         EffectChain two("Two", {{"Sc", new ScreamerModule()}, {"Ts", new TapeSatModule()}}, {});
         two.Init(48000.0f);
-        check(two.GetParameterBinCount(2) == 2 && std::string(two.GetParameterBinNames(2)[1]) == "1+2", "a chain of two only offers Normal and 1+2");
-        two.SetParameterRaw(2, SLOTS_1_2);
-        check(is(two.GetFootswitchSlots(), 0, 1), "and 1+2 gives right = slot 1, left = slot 2");
+        check(two.GetParameterBinCount(2) == 2 && std::string(two.GetParameterBinNames(2)[1]) == "2+1", "a chain of two only offers Normal and 2+1");
+        two.SetParameterRaw(2, SLOTS_2_1);
+        check(is(two.GetFootswitchSlots(), 0, 1), "and 2+1 gives right = slot 1, left = slot 2");
+
+        EffectChain four("Four", {{"A", new ScreamerModule()}, {"B", new WavefolderModule()}, {"C", new TapeSatModule()}, {"D", new ScreamerModule()}}, {});
+        four.Init(48000.0f);
+        const int sw4 = 4;
+        check(std::string(four.GetParameterName(sw4)) == "Switches" && four.GetParameterBinCount(sw4) == 7 && std::string(four.GetParameterBinNames(sw4)[4]) == "4+1" &&
+                  std::string(four.GetParameterBinNames(sw4)[6]) == "4+3",
+              "a chain of four has seven Switches choices (Normal, 2+1, 3+1, 3+2, 4+1, 4+2, 4+3)");
+        four.SetParameterRaw(sw4, 5);
+        check(is(four.GetFootswitchSlots(), 1, 3), "Switches 4+2: right = slot 2, left = slot 4");
+        four.SetSlotOn(3, false);
+        check(!four.IsSlotOn(3) && four.IsSlotOn(0), "and the fourth slot is switched through its own On parameter");
+        check(std::string(four.GetParameterName(sw4 + 1)).rfind("A ", 0) == 0, "the children's parameters follow Switches");
 
         EffectChain one("One", {{"Sc", new ScreamerModule()}}, {});
         one.Init(48000.0f);

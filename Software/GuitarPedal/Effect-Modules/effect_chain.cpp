@@ -53,7 +53,7 @@ namespace {
 // Generous headroom for "<tag> <child parameter name>" and "<tag> On".
 constexpr int kMaxCombinedNameLength = 32;
 
-// The most characters a tagged parameter name may have: the menu (UI/fit_text_menu.h) draws a name in the biggest font that fits and cuts it with a "~" beyond the 22 characters that
+// The most characters a tagged parameter name may have (a three character tag and a space leave 18 for the child's own name): the menu (UI/fit_text_menu.h) draws a name in the biggest font that fits and cuts it with a "~" beyond the 22 characters that
 // fit in the smallest (5 pixel wide) font, so a name up to this long is drawn in full, if small. (libDaisy's own menu draws nothing for a line wider than the display, which at the
 // default 11 pixel font was anything over 10 characters: the limit used to be 10 here, and a longer tagged name fell back to the child's own untagged name.)
 constexpr int kMaxSafeDisplayNameLength = 22;
@@ -69,7 +69,7 @@ EffectChain::EffectChain(const char *name, std::initializer_list<ChainSlot> slot
     : BaseEffectModule(), m_slotCount(static_cast<int>(slots.size())), m_switchesParam(m_slotCount >= 2 ? m_slotCount : -1),
       m_childParamBase(m_slotCount + (m_slotCount >= 2 ? 1 : 0)), m_primarySlot(primarySlot), m_hasShiftBank(false),
       m_shiftModeActive(false), m_fadeTimeSamples(1), m_combinedMetaData(nullptr), m_combinedNames(nullptr),
-      m_paramSlot(nullptr), m_paramChildId(nullptr) {
+      m_paramSlot(nullptr), m_paramChildId(nullptr), m_switchNames(nullptr), m_switchNameText(nullptr) {
     m_slots = new ChainSlot[m_slotCount];
     int slotIdx = 0;
     for (const auto &slot : slots) {
@@ -134,7 +134,7 @@ EffectChain::EffectChain(const char *name, std::initializer_list<ChainSlot> slot
     }
 
     // "Switches": which two slots the footswitches switch on and off instead of working as usual (Util/chain_switches.h; the pedal reads it
-    // through GetFootswitchSlots). A chain of two only offers Normal and 1+2.
+    // through GetFootswitchSlots). A chain of n slots offers Normal and every pair of slots (3+1: slot 3 on the left footswitch).
     if (m_switchesParam >= 0) {
         char *nameBuf = new char[kMaxCombinedNameLength];
         snprintf(nameBuf, kMaxCombinedNameLength, "Switches");
@@ -144,8 +144,16 @@ EffectChain::EffectChain(const char *name, std::initializer_list<ChainSlot> slot
         md.name = nameBuf;
         md.valueType = ParameterValueType::Binned;
         md.valueCurve = ParameterValueCurve::Linear;
-        md.valueBinCount = m_slotCount >= 3 ? chainswitches::MODE_COUNT : chainswitches::SLOTS_1_2 + 1;
-        md.valueBinNames = chainswitches::kModeNames;
+        const int modeCount = chainswitches::ModeCount(m_slotCount); // Normal and every pair of slots
+        constexpr int kModeNameLength = 24;                          // two numbers, a "+" and a terminator, whatever the numbers
+        m_switchNames = new const char *[modeCount];
+        m_switchNameText = new char[modeCount * kModeNameLength];
+        for (int mode = 0; mode < modeCount; mode++) {
+            chainswitches::ModeName(mode, m_switchNameText + mode * kModeNameLength, kModeNameLength);
+            m_switchNames[mode] = m_switchNameText + mode * kModeNameLength;
+        }
+        md.valueBinCount = modeCount;
+        md.valueBinNames = m_switchNames;
         md.defaultValue.uint_value = chainswitches::NORMAL;
         md.knobMapping = -1;
         md.midiCCMapping = -1;
@@ -250,6 +258,8 @@ EffectChain::~EffectChain() {
     delete[] m_combinedMetaData;
     delete[] m_paramSlot;
     delete[] m_paramChildId;
+    delete[] m_switchNames;
+    delete[] m_switchNameText;
 
     delete[] m_slotFadeLeft;
     delete[] m_slotFadeRight;

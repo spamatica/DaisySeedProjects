@@ -31,7 +31,7 @@
 - **Auto Filter:** an envelope filter (auto wah) in five types: Dynamic (Boss FT-2), Mutron (Mu-Tron III), Q-Tron, Auto Wah and Bass; Sens, Range, Peak, Decay, Up or Down, and low, band or high pass.
 
 ## Settings and display
-- **Effect chains: Switches** (a parameter of every chain of two or more effects): the two footswitches switch two of its effects on and off (1+2, 1+3 or 2+3), each LED showing its effect; saved with the chain's presets.
+- **Effect chains: Switches** (a parameter of every chain of two or more effects): the two footswitches switch two of its effects on and off (any pair of them, for a chain of any size: 2+1, 3+1, 3+2, 4+1, ..., named left to right like the footswitches), each LED showing its effect; saved with the chain's presets.
 - **New global settings:** In Gain and Out Gain (-24 to +24 dB), Trails, Lock Knobs (off by default); Show Debug is now saved.
 - **Show Debug readouts:** CPU percentage, averaged input and output peak levels, heap use with an out-of-memory guard.
 - **Menus:** long texts fit the display (auto-fit font, `~` cut, 8x13 bold font); parameters show units and decimals.

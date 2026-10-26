@@ -38,12 +38,12 @@ The rotary encoder underneath the screen controls the menu system. Turn the enco
 The right LED (above the primary footswitch) generally indicates if the pedal is active (light on) or bypassed (light off). The left LED (above the secondary footswitch) is effect-dependent. For example, it may blink in time to the delay temp, or indicate a secondary effect.
 
 ### Effect chains: the Switches parameter
-An effect chain has a **Switches** parameter in its menu (after the effects' On switches) with options: 1+2, 1+3 or 2+3.
+An effect chain has a **Switches** parameter in its menu (after the effects' On switches) with options for every pair of effects in the chain: 2+1, 3+1, 3+2 and, in a chain of four or more, 4+1, 4+2, 4+3, 5+1 and so on. They are listed left to right as the footswitches are on the pedal (3+1: effect 3 on the left footswitch, effect 1 on the right).
 
 This allows for assigning the two footswitches to both enable/disable one of the effects in the chain.
-The right footswitch the first of the two (in 2+3, effect 2), the left one the second, and each LED shows its footswitch's effect. 
+The right footswitch gets the lower numbered effect of the two (in 4+2, effect 2), the left one the higher (effect 4), and each LED shows its footswitch's effect. 
 
-With this feature enabled the chain itself always stays on; an effect without a footswitch (effect 3 in 1+2) stays as set in the menu, and with both footswitch effects off you hear whatever more is enabled, or the dry signal. 
+With this feature enabled the chain itself always stays on; an effect without a footswitch (effect 3 in 2+1) stays as set in the menu, and with both footswitch effects off you hear whatever more is enabled, or the dry signal. 
 
 Tap tempo and the left footswitch's own functions (including the second knob bank) are not available in this mode.
 

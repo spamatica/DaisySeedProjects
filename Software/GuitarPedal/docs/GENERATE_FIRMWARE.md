@@ -73,8 +73,8 @@ effect modules themselves or the menu/UI code. For example:
 ```cpp
 new EffectChain(
     "Trem+Verb",
-    // Slots: a short menu tag plus the child effect instance (owned by the chain).
-    {{"Tr", new ModulatedTremoloModule()}, {"Rv", new ReverbModule()}},
+    // Slots: a short (up to three characters) menu tag plus the child effect instance (owned by the chain).
+    {{"Tre", new ModulatedTremoloModule()}, {"Rev", new ReverbModule()}},
     // Knob/MIDI CC mappings: {slot, child param id, knob (-1 = none), midi CC (-1 = none)}.
     {{0, ModulatedTremoloModule::DEPTH, 0, 20},
      {0, ModulatedTremoloModule::FREQ, 1, 21},
@@ -84,7 +84,7 @@ new EffectChain(
 ```
 
 Every child parameter shows up in the effect's parameter menu, tagged with its slot's prefix (e.g.
-"Tr Depth", "Rv Mix") so identically-named parameters from different children stay distinct; only
+"Tre Depth", "Rev Mix") so identically-named parameters from different children stay distinct; only
 the parameters listed in the mapping array are reachable from a knob and/or MIDI CC. One slot (the
 first, by default) is the "primary" child, which owns the LED and the alternate footswitch.
 
@@ -97,7 +97,7 @@ Pass `footswitchTogglesSlots` to repurpose it as an on-off slot for one or more 
 ```cpp
 new EffectChain(
     "HT+Dly+Rv",
-    {{"Tr", new HarmonicTremoloModule()}, {"Dl", new DelayModule()}, {"Rv", new DattorroReverbModule()}},
+    {{"Tre", new HarmonicTremoloModule()}, {"Del", new DelayModule()}, {"Rev", new DattorroReverbModule()}},
     {{2, DattorroReverbModule::MIX,    0, 20},
      {0, HarmonicTremoloModule::DEPTH, 1, 21},
      {0, HarmonicTremoloModule::SPEED, 2, 22},
@@ -112,7 +112,7 @@ A `ChainMapping` can also target a slot's own "On" parameter instead of a child 
 `EffectChain::SLOT_ENABLE` sentinel (e.g. `{0, EffectChain::SLOT_ENABLE, -1, 30}`), which puts that
 bypass on a MIDI CC regardless of whether the footswitch is also toggling it.
 
-Every chain of two or more slots also gets a **Switches** parameter in its menu, after the On checkboxes: Normal, or 1+2, 1+3, 2+3 (a chain of two only offers Normal and 1+2), which puts those two slots on the right and left footswitches at runtime. While it is not Normal it overrides `footswitchTogglesSlots` and the alternate footswitch's other functions (see `Util/chain_switches.h` and the user manual). It is saved with the chain's presets.
+Every chain of two or more slots also gets a **Switches** parameter in its menu, after the On checkboxes: Normal, or any two of the chain's slots (a chain of two only offers Normal and 2+1, a chain of three Normal, 2+1, 3+1 and 3+2, a chain of four also 4+1, 4+2 and 4+3, and so on: one option for every pair of slots), which puts those two slots on the left and right footswitches at runtime. The options are named left to right, as the footswitches are on the pedal: 3+1 is slot 3 on the left footswitch and slot 1 on the right one. There is no limit on the number of slots, the list only gets longer. While it is not Normal it overrides `footswitchTogglesSlots` and the alternate footswitch's other functions (see `Util/chain_switches.h` and the user manual). It is saved with the chain's presets.
 
 Turning a slot off crossfades it out over about a tenth of a second and then stops processing it
 entirely, both to avoid a click and to save CPU. Note the delay/reverb trails are not preserved.
@@ -129,7 +129,7 @@ child (or stays a no-op under `footswitchTogglesSlots`) exactly as before:
 ```cpp
 new EffectChain(
     "HT+Dly+Rv",
-    {{"Tr", new HarmonicTremoloModule()}, {"Dl", new DelayModule()}, {"Rv", new DattorroReverbModule()}},
+    {{"Tre", new HarmonicTremoloModule()}, {"Del", new DelayModule()}, {"Rev", new DattorroReverbModule()}},
     {{2, DattorroReverbModule::MIX,       0, 20},
      {0, HarmonicTremoloModule::DEPTH,    1, 21},
      {0, HarmonicTremoloModule::SPEED,    2, 22},
@@ -175,8 +175,8 @@ mark every slot but one `ownsEffect = false` so only one of them deletes it:
 ```cpp
 static DattorroReverbModule* reverb = new DattorroReverbModule();
 
-new EffectChain("HarmTremVerb",    {{"HT", new HarmonicTremoloModule()}, {"Rv", reverb}}, ...),                    // owns it
-new EffectChain("ModTremVerb", {{"Tr", new ModulatedTremoloModule()}, {"Rv", reverb, /* ownsEffect */ false}}, ...), // reuses it
+new EffectChain("HarmTremVerb",    {{"HTr", new HarmonicTremoloModule()}, {"Rev", reverb}}, ...),                    // owns it
+new EffectChain("ModTremVerb", {{"Tre", new ModulatedTremoloModule()}, {"Rev", reverb, /* ownsEffect */ false}}, ...), // reuses it
 ```
 
 The two chains are then processing the exact same reverb - its parameters are shared state, not a

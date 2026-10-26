@@ -14,8 +14,8 @@ namespace bkshepherd {
 
 /** One child effect inside an EffectChain.
  *
- * `tag` is a short (2 character) prefix prepended to every one of this
- * child's parameter names in the combined menu, e.g. "Tr Depth", so that two
+ * `tag` is a short (3 character) prefix prepended to every one of this
+ * child's parameter names in the combined menu, e.g. "Tre Depth", so that two
  * children with the same parameter name (both have a "Mix") stay
  * distinguishable. It also names that slot's synthesized "<tag> On" enable
  * parameter (see EffectChain).
@@ -194,6 +194,8 @@ class EffectChain : public BaseEffectModule {
     char **m_combinedNames;                // owned; one name string per parameter
     uint8_t *m_paramSlot;                  // child parameter array index -> slot index
     uint16_t *m_paramChildId;              // child parameter array index -> parameter id within that child
+    const char **m_switchNames;            // owned; the names of the Switches modes ("Normal", "2+1", "3+1", ...)
+    char *m_switchNameText;                // owned; the text of those names
 };
 
 } // namespace bkshepherd
