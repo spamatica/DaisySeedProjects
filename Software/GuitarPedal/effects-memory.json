@@ -116,6 +116,15 @@
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)"
   },
+  "auto_filter": {
+   "dtcm": 40,
+   "ram_d2": 0,
+   "sram": 6503,
+   "sdram": 0,
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 0,
+   "heap_source": "no new in the module"
+  },
   "autopan": {
    "dtcm": 32,
    "ram_d2": 0,

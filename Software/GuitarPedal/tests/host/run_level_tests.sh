@@ -23,6 +23,7 @@ run distortion Effect-Modules/distortion_module.cpp $BASEMOD $LGPL/Filters/tone.
 run distortion_family Effect-Modules/preamp_module.cpp Effect-Modules/screamer_module.cpp Effect-Modules/muff_fuzz_module.cpp Effect-Modules/wavefolder_module.cpp Effect-Modules/exciter_module.cpp Effect-Modules/bass_dist_module.cpp Effect-Modules/octave_fuzz_module.cpp Effect-Modules/tape_sat_module.cpp Effect-Modules/chainsaw_module.cpp $BASEMOD
 run crusher Effect-Modules/crusher_module.cpp Util/frequency_detector_q.cpp $BASEMOD
 run booster Effect-Modules/booster_module.cpp $BASEMOD
+run auto_filter Effect-Modules/auto_filter_module.cpp $BASEMOD
 run spring_reverb Effect-Modules/spring_reverb_module.cpp $BASEMOD
 run multi_phaser Effect-Modules/multi_phaser_module.cpp $BASEMOD
 run compressor Effect-Modules/compressor_module.cpp $BASEMOD $LGPL/Dynamics/compressor.cpp

@@ -5,7 +5,7 @@ These are the effects that can be included in a firmware; which of them your ped
 Each effect below has a short description, where it comes from when that is known, and a list of its parameters. "Knob N" is the knob the parameter is on by default; "menu only" parameters are reached through the parameter menu. Ranges and defaults are the values the display shows.
 
 - [Gain, Distortion and Saturation](#gain-distortion-and-saturation): Booster, Overdrive, Screamer, Distortion, Chainsaw, Muff Fuzz, Octa Fuzz, Bass Dist, Preamp, Wavefolder, Crusher, Exciter, Tape Sat, Dist Bench
-- [Modulation](#modulation): Tremolo, Harm Trem, AutoPan, Chopper, Chorus, Phaser, Multi Phaser, Flanger
+- [Modulation](#modulation): Tremolo, Harm Trem, AutoPan, Auto Filter, Chopper, Chorus, Phaser, Multi Phaser, Flanger
 - [Delay](#delay): Delay, Multi Delay, Tape Delay, Dual Echo, GranDelay, SpctDelay, PluckEcho
 - [Reverb](#reverb): Reverb, Spring Reverb, CloudSeed, Dattorro, Verb Delay
 - [Pitch](#pitch): Pitch, PolyOctave, SciFi
@@ -260,6 +260,31 @@ Moves the sound back and forth between the left and right outputs with an LFO. T
 - **Osc Wave** (Sine, Triangle, Saw, Ramp, Square, Poly Tri, Poly Saw, Poly Sqr; default Sine; Knob 3): shape of the pan movement. Sine and Triangle glide, Square jumps from one side to the other (the movement is smoothed a little).
 - **Stereo** (Off or On, default Off; Knob 4): Off pans the mono input; On treats the input as a stereo pair (see above).
 - **Footswitch 2**: tap tempo. The pan cycle takes four beats (so a tapped 120 BPM gives 0.5 Hz). The left LED follows the pan position.
+
+### Auto Filter
+
+An envelope filter, also called an auto wah: how hard you play opens or closes a resonant filter by itself, so every note gets a "quack" that follows your picking. A hard note sweeps the filter over a wide range and, as the note dies away, the filter falls back. It is the sound of funk guitar and bass. The classic units differ in the range they sweep, how much resonance they have, how fast they follow the playing and in what they add, and the **Type** selects among five of them (all the other controls work the same for every type):
+
+- **Dynamic**: modelled on the Boss FT-2 Dynamic Filter. Clean, fast and medium range with moderate resonance; the all-round envelope filter that works for guitar and synth-like sounds alike.
+- **Mutron**: modelled on the Mu-Tron III. A slower, "optical" envelope that opens gradually and lingers, lots of resonance and a soft-saturating input stage that squashes the loud notes, so the quack is round and fat. The classic funk sound.
+- **Q-Tron**: modelled on the Electro-Harmonix Q-Tron. A wide sweep and a lot of resonance with a quick attack: big, wet, over-the-top quack.
+- **Auto Wah**: a wah pedal played by the envelope. A narrow, vocal range around 350 Hz to 2 kHz with little resonance and a very fast response; the closest to a real wah.
+- **Bass**: an envelope filter for bass. A low range, and the lows of the dry signal are kept, so the note does not disappear when the filter opens up high.
+
+Original to this project; the types are modelled on the characteristics of these units (sweep range, resonance, response time, input stage), not on their circuits, and the exact figures are by ear. Start with Sens: play at your normal level and turn it up until the filter sweeps with your picking, then set Range (where the sweep starts), Peak (the resonance) and Decay (how long the filter takes to close).
+
+Output is mono (a stereo input uses the left channel).
+
+- **Sens** (0 to 48 dB, default 30 dB; Knob 1): how hard you have to play to move the filter. Turn it up for a quiet guitar or a gentle touch, down if the filter is always wide open.
+- **Range** (0 to 100%, default 30%; Knob 2): where the sweep starts, the filter's resting frequency (for Up; for Down it is the lowest point). The span of each type is: Dynamic 150 to 1200 Hz, Mutron 100 to 800 Hz, Q-Tron 120 to 1000 Hz, Auto Wah 350 to 800 Hz, Bass 50 to 300 Hz, and the playing then sweeps 2.6 to 4.5 octaves above that.
+- **Peak** (0 to 100%, default 50%; Knob 3): the resonance. Low is a gentle tone control, high is a sharp, vocal quack (and at the top of the Q-Tron and Mutron, a squeal).
+- **Decay** (0 to 100%, default 40%; Knob 4): how slowly the filter falls back after a note. Short is snappy and percussive, long is a slow "wow".
+- **Type** (Dynamic, Mutron, Q-Tron, Auto Wah, Bass; default Dynamic; Knob 5): see above.
+- **Level** (-12 to +12 dB, default 0 dB; Knob 6): the output level. At 0 dB each type is about 3 dB louder than the input at normal playing level; the level of an envelope filter changes with how you play.
+- **Direction** (Up or Down, default Up; menu only): Up opens the filter when you play harder (the usual sound), Down closes it ("reverse" quack, a bit like a swell).
+- **Filter** (Low Pass, Band Pass, High Pass; default Band Pass; menu only): Band Pass is the classic vocal quack, Low Pass is a smoother "wow" that keeps the lows, High Pass is thin and sharp.
+- **Mix** (0 to 100%, default 100%; menu only): the filtered signal against the dry one. Below 100% the effect is subtler and keeps more of the body of the note.
+- The left LED brightness follows the filter's sweep.
 
 ### Chopper
 

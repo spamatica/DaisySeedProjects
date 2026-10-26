@@ -28,6 +28,7 @@
 - **Booster:** a gain stage with four types: Clean, Treble, Mid and Warm.
 - **Chainsaw:** an HM-2-style heavy metal distortion, the "Swedish chainsaw"
 - **Dist Bench:** a test bench with up to four distortion stages in series.
+- **Auto Filter:** an envelope filter (auto wah) in five types: Dynamic (Boss FT-2), Mutron (Mu-Tron III), Q-Tron, Auto Wah and Bass; Sens, Range, Peak, Decay, Up or Down, and low, band or high pass.
 
 ## Settings and display
 - **Effect chains: Switches** (a parameter of every chain of two or more effects): the two footswitches switch two of its effects on and off (1+2, 1+3 or 2+3), each LED showing its effect; saved with the chain's presets.

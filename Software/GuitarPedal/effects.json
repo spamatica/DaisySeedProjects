@@ -66,6 +66,16 @@
  },
  "effects": [
   {
+   "id": "auto_filter",
+   "class": "AutoFilterModule",
+   "header": "auto_filter_module.h",
+   "sources": [
+    "Effect-Modules/auto_filter_module.cpp"
+   ],
+   "origin": "this project (spamatica)",
+   "note": "Envelope filter (auto wah) in five types: Dynamic (Boss FT-2), Mutron (Mu-Tron III), Q-Tron, Auto Wah and Bass; Sens, Range, Peak, Decay, Up or Down, low, band or high pass"
+  },
+  {
    "id": "autopan",
    "class": "AutoPanModule",
    "header": "autopan_module.h",
