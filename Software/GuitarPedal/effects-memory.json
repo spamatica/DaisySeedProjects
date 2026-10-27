@@ -507,9 +507,9 @@
    "heap_source": "no new in the module (host count)"
   },
   "vowel": {
-   "dtcm": 32,
+   "dtcm": 736,
    "ram_d2": 0,
-   "sram": 8388,
+   "sram": 9812,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap": 0,

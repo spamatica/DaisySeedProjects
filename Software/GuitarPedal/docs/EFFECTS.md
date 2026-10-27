@@ -290,20 +290,30 @@ Output is mono (a stereo input uses the left channel).
 
 Experimental. A vowel filter, the "talking guitar" of a talk box without the tube: a bank of four resonant filters is tuned to the formants of a sung vowel, so the guitar sounds as if it were sung through that vowel. Single notes and chords both work; the sound is nasal and a bit hollow, and it gets more vocal with a little gain in front of it (a Booster or Screamer before it works well).
 
-The second footswitch changes the vowel while it is held: the filter glides to the Hold Vowel, and glides back to the Vowel when you let go. Pressing it in time with the playing makes the guitar speak: A and I give "ai", A and U give "au", E and O give "eo". The left LED is bright while the second vowel is held and dim otherwise.
+The vowel changes in one of three ways (the **Footswitch** parameter):
+
+- **Vowel 2**: a momentary change to Vowel 2. While the switch is held the filter glides to Vowel 2, and it glides back to Vowel 1 when you let go. Pressing it in time with the playing makes the guitar speak: A and I give "ai", A and U give "au", E and O give "eo".
+- **Step**: every press goes to the next vowel of a sequence of up to five (Vowel 1 to Vowel 5; **Steps** says how many are used) and, after the last, round to the first again. Set the sequence you want, for example A, E, I, O, U with Steps at 5, and play a line while stepping through it. The filter starts at Vowel 1 whenever the effect is switched on.
+
+- **Auto**: the vowel changes by itself, to the next of the sequence every **Interval** (60 ms to 2 s), round and round: a rhythmic, talking "wah-wah-wah". While the second footswitch is held down the current vowel is held, and the sequence goes on from there when you release it. Short intervals give a fast chatter, long ones a slow morph (with a long Glide it becomes a continuous sweep through the vowels).
+
+The left LED shows where you are: with Vowel 2 it is bright while the switch is held and dim otherwise, in Step it gets brighter with every step, in Auto it flashes at every change and is steady while the vowel is held.
 
 Original to this project. The vowel formants are the standard figures for a sung tenor voice (the table used by many synthesizers), which is not how a real talk box sounds, but it recognisably says the vowels.
 
 Output is mono (a stereo input uses the left channel).
 
-- **Vowel** (A, E, I, O, U; default A; Knob 1): the vowel of the filter.
-- **Hold Vowel** (A, E, I, O, U; default I; Knob 2): the vowel it changes to while the second footswitch is held.
+- **Vowel 1** (A, E, I, O, U; default A; Knob 1): the vowel of the filter, and the first of the sequence.
+- **Vowel 2** (A, E, I, O, U; default I; Knob 2): the vowel it changes to while the second footswitch is held (Footswitch set to Vowel 2), and the second of the sequence (Step and Auto).
 - **Glide** (5 to 800 ms, default about 40 ms; Knob 3): how long it takes to move from one vowel to the other. Short is a sharp "wow", long is a slow morph.
 - **Sharp** (0 to 100%, default 50%; Knob 4): how narrow the formants are. Low is soft and breathy, high is nasal and more pronounced.
 - **Mix** (0 to 100%, default 100%; Knob 5): the filtered signal against the dry one.
 - **Level** (-12 to +12 dB, default 0 dB; Knob 6): the output level. At 0 dB every vowel is about 3 dB louder than the input at normal playing level.
 - **Voice** (Male, Female, Child; default Male; menu only): moves the formants up (20% for Female, 40% for Child), as a shorter vocal tract would.
-- **Footswitch 2**: the momentary vowel change described above (not used for tap tempo).
+- **Footswitch** (Vowel 2, Step or Auto, default Vowel 2; menu only): what the second footswitch does, see above. It is not used for tap tempo.
+- **Steps** (2 to 5, default 3; menu only): how many vowels the Step and Auto modes go through.
+- **Interval** (60 ms to 2 s, default about 350 ms; menu only): the time between the vowels in the Auto mode.
+- **Vowel 3, Vowel 4, Vowel 5** (A, E, I, O, U; defaults U, E, O; menu only): the rest of the sequence of the Step and Auto modes.
 
 ### Chopper
 

@@ -11,7 +11,7 @@ using namespace leveltest;
 static std::unique_ptr<VowelModule> make(int vowel) {
     auto m = std::make_unique<VowelModule>();
     m->Init(kSampleRate); // every parameter at its default (Hold Vowel I, Glide 40%, Sharp 50%, Mix 100%, Level 0 dB, Male)
-    m->SetParameterRaw(VowelModule::VOWEL, vowel);
+    m->SetParameterRaw(VowelModule::VOWEL_1, vowel);
     m->SetEnabled(true);
     return m;
 }
