@@ -237,8 +237,8 @@ def uses_cloudseed_engine(effect, m):
 
 def chain_blocked(effect, m):
     """Why an effect cannot be a slot of a chain (None if it can)."""
-    if uses_cloudseed_engine(effect, m):
-        return "its reverb engine is sized for one instance standalone (see effect_chain.cpp)"
+    # (The effects on the CloudSeed engine can be slots: the pool is sized for the number of them that are built, chain slots included, and as they are
+    # single-instance only the tool already keeps them out of a second chain or a standalone entry next to the chain.)
     if not effect_params(effect):
         return "it has no parameter enum to map"
     return None

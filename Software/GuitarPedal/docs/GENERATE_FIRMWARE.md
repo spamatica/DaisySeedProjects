@@ -63,8 +63,8 @@ Every converted effect has an entry in `effects.json` (what to compile, what it 
 
 Chains can be made without writing any C++: in the interactive tool (`./pedal_setup`) press `c`, make a chain, add its effects, and map their parameters to knobs and MIDI CCs.
 They are stored in `chains.json`, and `pedal_setup generate` (or `s` in the tool, or `make`) turns them into `generated/effects_chains.inc`, which `loaded_effects.h` includes. The effects
-of a chain are built even if they are not selected on their own (`[c]` in the list). The tool checks what `effect_chain.cpp` warns about: effects on the CloudSeed engine cannot be chained, and an effect that keeps big buffers
-can exist only once (not also on its own, not in two chains). The rest of this section describes the C++ the tool writes, which you can still write by hand in `loaded_effects.h`.
+of a chain are built even if they are not selected on their own (`[c]` in the list). The tool checks what `effect_chain.cpp` warns about: an effect that keeps big buffers (the reverbs and delays, among them the ones on the CloudSeed engine: CloudSeed, Jupiter and Neptune)
+can exist only once (not also on its own, not in two chains). Only Scope cannot be a slot (it has no parameters to map). The rest of this section describes the C++ the tool writes, which you can still write by hand in `loaded_effects.h`.
 
 `Effect-Modules/effect_chain.h` lets you wire two or more effects into a single chained entry in
 `loaded_effects.h`, processed serially (e.g. tremolo into reverb), without changing any of the

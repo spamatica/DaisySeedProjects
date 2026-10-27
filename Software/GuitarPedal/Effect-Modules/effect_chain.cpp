@@ -34,10 +34,12 @@ using daisysp::CrossFade;
 //    global (most delays and reverbs) may only appear once across the whole
 //    effectList, chains included, because every instance of that module type
 //    aliases the same buffer. If you chain one, comment out its standalone
-//    effectList entry. CloudSeedModule is a sharper case: its pool_index
-//    bump allocator is sized for exactly one instance and is never reset, so
-//    a second instance gets nullptr back from Init() and crashes. It's CPU
-//    heavy enough that it should just stay standalone.
+//    effectList entry. The same goes for the modules on the CloudSeed engine
+//    (CloudSeed, Jupiter, Neptune): each takes its own engine from the pool in
+//    cloudseed_pool.cpp, a bump allocator that is never reset and is sized by
+//    CLOUDSEED_ENGINES, the number of those modules that are built, so one
+//    instance of each is fine as a slot (a second instance of the same module
+//    would not get its memory). They are CPU heavy: mind the headroom.
 //  - A chain always draws its own name on the home screen, so children with
 //    a custom DrawUI (Tuner, Looper, the EQs, AutoPan) lose their display.
 //  - GetMappedParameterIDForKnob is resolved against the chain's combined

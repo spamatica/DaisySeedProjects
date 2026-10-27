@@ -449,11 +449,25 @@ class ChainTest(unittest.TestCase):
         self.assertIn("MIDI CC 20 is already used", text)
         self.assertIn("no parameter NOPE", text)
 
-    def test_cloudseed_effects_cannot_be_slots_and_big_ones_only_once(self):
-        self.assertTrue(fx.chain_blocked(self.sel.m["by_id"]["cloudseed"], self.sel.m))
-        self.assertTrue(fx.chain_blocked(self.sel.m["by_id"]["funbox-jupiter"], self.sel.m))
+    def test_cloudseed_effects_can_be_slots_and_big_ones_only_once(self):
+        for e in ("cloudseed", "funbox-jupiter", "funbox-neptune"):
+            self.assertIsNone(fx.chain_blocked(self.sel.m["by_id"][e], self.sel.m), e)
+        self.assertTrue(fx.chain_blocked(self.sel.m["by_id"]["scope"], self.sel.m))  # no parameters to map
+        self.assertIn("funbox-neptune", [e["id"] for e in self.ed.chainable()])
         self.two()
         self.sel.enabled.add("reverb")                # the reverb on its own as well as in the chain
+        self.assertTrue(any("also enabled on its own" in p for p in self.ed.problems()))
+
+    def test_a_chain_with_a_cloudseed_engine_effect_sizes_the_pool_for_it(self):
+        self.ed.add_slot("funbox-neptune", "Nep")
+        self.ed.add_slot("modulated_tremolo", "Tre")
+        self.assertEqual(self.ed.problems(), [])
+        self.sel.chains = [self.chain]
+        self.assertEqual(self.sel.problems(), [])
+        self.assertTrue(self.sel.save(), self.sel.message)
+        self.assertIn("-DCLOUDSEED_ENGINES=1", open(os.path.join(fx.GEN, "defines.mk")).read())  # one engine: the chain's Neptune
+        self.assertIn("new NeptuneModule()", open(os.path.join(fx.GEN, "effects_chains.inc")).read())
+        self.sel.enabled.add("funbox-neptune")        # and also standalone: a second Neptune (it can exist only once)
         self.assertTrue(any("also enabled on its own" in p for p in self.ed.problems()))
 
     def test_the_chain_builds_its_effects_and_the_status_counts_them(self):
