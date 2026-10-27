@@ -11,18 +11,18 @@
   "ram_d2": 8192
  },
  "base": {
-  "dtcm": 29976,
+  "dtcm": 36441,
   "ram_d2": 0,
-  "sram": 191211,
-  "sdram": 0,
+  "sram": 235172,
+  "sdram": 512,
   "heap": 18476,
-  "_calibrated_with": "the build of: uranus, balnea, pluto, cassini, mars, mercury"
+  "_calibrated_with": "the build of: autopan, chopper, chorus, cloudseed, compressor, crusher, delay, distortion, drum, dual_echo, flanger, geq, granular_delay, harmonic_tremolo, ir, looper, metro, modulated_tremolo, multi_delay, nam, noise_gate, overdrive, peq, phaser, pitch_shifter, polyoctave, reverb, scifi, spectral_delay, tape_delay, tuner"
  },
  "components": {
   "cloudseed_pool": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 7571,
+   "sram": 7967,
    "sdram": 2531132
   },
   "dattorro_engine": {
@@ -46,58 +46,61 @@
   "impulse_response": {
    "dtcm": 36,
    "ram_d2": 0,
-   "sram": 9324,
+   "sram": 9220,
    "sdram": 0
   }
  },
  "effects": {
   "funbox-venus": {
-   "heap": 17281,
+   "heap": 17280,
    "dtcm": 73820,
    "ram_d2": 0,
-   "sram": 6946,
+   "sram": 7122,
    "sdram": 147456,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "funbox-jupiter": {
    "heap": 9216,
    "dtcm": 68,
    "ram_d2": 0,
-   "sram": 23523,
+   "sram": 28007,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap_source": "measured on the pedal: Show Debug heap used 45 K without Jupiter, 54 K with it"
   },
   "funbox-saturn": {
-   "heap": 1782,
+   "heap": 1808,
    "dtcm": 36,
    "ram_d2": 124688,
-   "sram": 10394,
+   "sram": 10630,
    "sdram": 2873600,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "funbox-neptune": {
    "heap": 7373,
    "dtcm": 244,
    "ram_d2": 0,
-   "sram": 28513,
+   "sram": 28546,
    "sdram": 4608000,
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap_source": "measured on the pedal by difference: Show Debug heap used 54 K (with Cassini, without Neptune), 60 K (without Cassini, with Neptune)"
   },
   "funbox-uranus": {
-   "heap": 13028,
+   "heap": 12992,
    "dtcm": 3348,
    "ram_d2": 96000,
-   "sram": 7693,
+   "sram": 8445,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "cloudseed": {
    "heap": 9216,
-   "dtcm": 612,
+   "dtcm": 652,
    "ram_d2": 0,
-   "sram": 31796,
+   "sram": 32372,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
    "heap_source": "inferred from Jupiter (the same engine; its delay lines are in the SDRAM pool, not on the heap)"
@@ -105,16 +108,20 @@
   "modulated_tremolo": {
    "dtcm": 32,
    "ram_d2": 0,
-   "sram": 1227,
+   "sram": 1955,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 240,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "overdrive": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 1376,
+   "sram": 1448,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 160,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "auto_filter": {
    "dtcm": 40,
@@ -122,415 +129,493 @@
    "sram": 6503,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 0,
-   "heap_source": "no new in the module"
+   "heap": 256,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "autopan": {
    "dtcm": 32,
    "ram_d2": 0,
-   "sram": 1775,
+   "sram": 1927,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 184,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "chorus": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 1034,
+   "sram": 1262,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 19456,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "chopper": {
    "dtcm": 462,
    "ram_d2": 0,
-   "sram": 2236,
+   "sram": 3001,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 248,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "reverb": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 1409,
+   "sram": 1568,
    "sdram": 396100,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 144,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "multi_delay": {
    "dtcm": 52,
    "ram_d2": 0,
-   "sram": 4843,
+   "sram": 5023,
    "sdram": 3597048,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 192,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "metro": {
    "dtcm": 12,
    "ram_d2": 0,
-   "sram": 1941,
+   "sram": 2069,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 248,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "tuner": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 1999,
+   "sram": 2091,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 216,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "pitch_shifter": {
    "dtcm": 216,
    "ram_d2": 0,
-   "sram": 8408,
+   "sram": 8560,
    "sdram": 48000,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 160,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "compressor": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 1423,
+   "sram": 1531,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 192,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "looper": {
    "dtcm": 28,
    "ram_d2": 0,
-   "sram": 4225,
+   "sram": 4469,
    "sdram": 23040000,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 352,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "geq": {
-   "dtcm": 504,
+   "dtcm": 528,
    "ram_d2": 0,
-   "sram": 3068,
+   "sram": 3053,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 136,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "peq": {
-   "dtcm": 552,
+   "dtcm": 588,
    "ram_d2": 0,
-   "sram": 3724,
+   "sram": 3672,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 144,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "noise_gate": {
    "dtcm": 12,
    "ram_d2": 0,
-   "sram": 1731,
+   "sram": 1942,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 192,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "delay": {
    "dtcm": 76,
    "ram_d2": 0,
-   "sram": 5783,
+   "sram": 6815,
    "sdram": 6163364,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 576,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "tape_delay": {
    "dtcm": 40,
    "ram_d2": 0,
-   "sram": 7036,
+   "sram": 7332,
    "sdram": 3468124,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 592,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "dual_echo": {
    "dtcm": 20,
    "ram_d2": 0,
-   "sram": 6622,
+   "sram": 6998,
    "sdram": 592408,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 456,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "nam": {
    "dtcm": 11788,
-   "ram_d2": 76640,
-   "sram": 47822,
+   "ram_d2": 77184,
+   "sram": 51747,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 9512,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "scifi": {
    "dtcm": 176,
    "ram_d2": 0,
-   "sram": 11732,
+   "sram": 12000,
    "sdram": 396100,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 264,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "polyoctave": {
    "dtcm": 176,
    "ram_d2": 0,
-   "sram": 10626,
+   "sram": 10794,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 200,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "spectral_delay": {
    "dtcm": 13085,
    "ram_d2": 0,
-   "sram": 5206,
+   "sram": 5390,
    "sdram": 749376,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 488,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "distortion": {
    "dtcm": 24,
    "ram_d2": 0,
-   "sram": 13876,
+   "sram": 13948,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 288,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "granular_delay": {
    "dtcm": 12,
    "ram_d2": 0,
-   "sram": 2304,
+   "sram": 2476,
    "sdram": 96000,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 6560,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "ir": {
-   "dtcm": 44,
+   "dtcm": 8,
    "ram_d2": 0,
-   "sram": 10830,
+   "sram": 1758,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 9248,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "drum": {
    "dtcm": 100,
    "ram_d2": 0,
-   "sram": 5436,
+   "sram": 5640,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 1568,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "phaser": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 1970,
+   "sram": 2174,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 336,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "flanger": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 1279,
+   "sram": 1515,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 4048,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "crusher": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 6934,
+   "sram": 7006,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 50480,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "harmonic_tremolo": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 3290,
+   "sram": 5147,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 480,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "scope": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 540,
+   "sram": 628,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 616,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "reverb_delay": {
    "dtcm": 52,
    "ram_d2": 0,
-   "sram": 7244,
+   "sram": 9300,
    "sdram": 6559464,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 536,
+   "heap": 512,
    "heap_source": "host count; the ReverbSc (388 KB) is a static in SDRAM, as in the Reverb module"
   },
   "midi_keys": {
    "dtcm": 1440,
    "ram_d2": 0,
-   "sram": 3541,
+   "sram": 3686,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 128,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "pluckecho": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 2102,
+   "sram": 2282,
    "sdram": 1920012,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 35000,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "string_keys": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 1053,
+   "sram": 1177,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 5512,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "modal_keys": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 1036,
+   "sram": 1160,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 496,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "fm_keys": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 3836,
+   "sram": 4360,
    "sdram": 0,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 4584,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "dattorro": {
    "dtcm": 13,
    "ram_d2": 0,
-   "sram": 2976,
+   "sram": 3242,
    "sdram": 1048576,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 2280,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "funbox-earth": {
    "dtcm": 49,
    "ram_d2": 0,
-   "sram": 13670,
+   "sram": 13938,
    "sdram": 2097152,
-   "static_source": "object files (arm-none-eabi-size -A)"
+   "static_source": "object files (arm-none-eabi-size -A)",
+   "heap": 24584,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "funbox-balnea": {
    "dtcm": 24,
    "ram_d2": 0,
-   "sram": 13777,
+   "sram": 10777,
    "sdram": 393216,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 3520
+   "heap": 3528,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "funbox-pluto": {
    "dtcm": 44,
    "ram_d2": 0,
-   "sram": 9028,
+   "sram": 9008,
    "sdram": 23436100,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 520
+   "heap": 520,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "funbox-cassini": {
    "dtcm": 36,
    "ram_d2": 0,
-   "sram": 10358,
+   "sram": 10782,
    "sdram": 23436100,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 1184
+   "heap": 1184,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "funbox-mars": {
    "dtcm": 72,
    "ram_d2": 0,
-   "sram": 13342,
+   "sram": 13718,
    "sdram": 672016,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 9040
+   "heap": 9040,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "funbox-mercury": {
    "dtcm": 35096,
    "ram_d2": 0,
-   "sram": 23365,
+   "sram": 23605,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 312
+   "heap": 312,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "duck_compressor": {
    "dtcm": 8,
    "ram_d2": 0,
-   "sram": 4127,
+   "sram": 4327,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 0,
-   "heap_source": "no new in the module (host count)"
+   "heap": 216,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "test_tone": {
    "dtcm": 16,
    "ram_d2": 0,
-   "sram": 2237,
+   "sram": 3033,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 0
+   "heap": 152,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "bass_dist": {
    "dtcm": 12,
    "ram_d2": 0,
-   "sram": 6885,
+   "sram": 6977,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 0,
-   "heap_source": "no new in the module (host count)"
+   "heap": 328,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "exciter": {
    "dtcm": 416,
    "ram_d2": 0,
-   "sram": 3920,
+   "sram": 4036,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 0,
-   "heap_source": "no new in the module (host count)"
+   "heap": 232,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "muff_fuzz": {
    "dtcm": 12,
    "ram_d2": 0,
-   "sram": 5511,
+   "sram": 5603,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 0,
-   "heap_source": "no new in the module (host count)"
+   "heap": 256,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "octave_fuzz": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 3156,
+   "sram": 3248,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 0,
-   "heap_source": "no new in the module (host count)"
+   "heap": 200,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "preamp": {
    "dtcm": 12,
    "ram_d2": 0,
-   "sram": 10362,
+   "sram": 10454,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 0,
-   "heap_source": "no new in the module (host count)"
+   "heap": 328,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "screamer": {
    "dtcm": 12,
    "ram_d2": 0,
-   "sram": 5136,
+   "sram": 5228,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 0,
-   "heap_source": "no new in the module (host count)"
+   "heap": 208,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "tape_sat": {
    "dtcm": 8,
    "ram_d2": 0,
-   "sram": 4637,
+   "sram": 4729,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 0,
-   "heap_source": "no new in the module (host count)"
+   "heap": 256,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "vowel": {
    "dtcm": 736,
    "ram_d2": 0,
-   "sram": 9812,
+   "sram": 9794,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 0,
-   "heap_source": "no new in the module"
+   "heap": 440,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "wavefolder": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 3281,
+   "sram": 3373,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 0,
-   "heap_source": "no new in the module (host count)"
+   "heap": 192,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "dist_bench": {
    "dtcm": 1688,
    "ram_d2": 0,
-   "sram": 72159,
+   "sram": 73243,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 11568,
+   "heap": 11904,
    "heap_source": "host count: the bench object with its 44 child effects and their parameter arrays (Init allocates nothing more)"
   },
   "booster": {
@@ -539,8 +624,8 @@
    "sram": 8527,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 0,
-   "heap_source": "no new in the module (host count)"
+   "heap": 288,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   },
   "spring_reverb": {
    "dtcm": 40,
@@ -548,7 +633,7 @@
    "sram": 9457,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 36760,
+   "heap": 36776,
    "heap_source": "host count: the module object, which holds the six springs' delay lines and allpass chains (no other allocation)"
   },
   "multi_phaser": {
@@ -557,17 +642,17 @@
    "sram": 9641,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 1108,
+   "heap": 1120,
    "heap_source": "host count: the module object, which holds the four phasers' filter states (no other allocation)"
   },
   "chainsaw": {
    "dtcm": 0,
    "ram_d2": 0,
-   "sram": 7181,
+   "sram": 7273,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 0,
-   "heap_source": "no new in the module (host count)"
+   "heap": 344,
+   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
   }
  },
  "observed": [

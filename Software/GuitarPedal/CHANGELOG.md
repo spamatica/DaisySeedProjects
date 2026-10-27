@@ -62,6 +62,7 @@
 - **Chains** can be made in the tool and are generated into the build.
 - **Memory budget** report and a matrix of which effects fit together; boot results are recorded in `effects-memory.json`.
 - **Only the chosen effects** are compiled.
+- **Memory estimates re-measured** for all 67 effects (code, data and heap) and the framework's base calibrated against a real build of the default set (SRAM base 229 KB, it was 187 KB), so the report's SRAM figure now matches the linker for the default set and for default plus Dattorro and Reverb Delay (which does not fit, as the linker says).
 
 ## Documentation
 - **`GENERATE_FIRMWARE.md`:** the tool, the memory limits, the GPL opt-in and chains.
