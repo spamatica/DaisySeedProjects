@@ -1,5 +1,5 @@
 {
- "_note": "Memory cost of the effects, read by tools/effects.py. Static figures are bytes per region measured from the object files (`tools/effects.py measure`). 'heap' is what the effect allocates with new: host estimates from tests/host/run_heap_report.sh (the CloudSeed engine takes about 9 KB: measured for Jupiter on the pedal; the host count of 129 KB was far too high, see docs/PERFORMANCE_AND_MEMORY.md); null means not measured.",
+ "_note": "Memory cost of the effects, read by tools/effects.py. Static figures are bytes per region measured from the object files (`tools/effects.py measure`). 'heap' is what the effect allocates with new (an effect's own entry has a heap_source): host estimates from tests/host/run_heap_report.sh, replaced by pedal measurements (tools/pedal_measure.sh -s) where there is one; the host count misses what global constructors allocate before main (PolyOctave, SciFi, the IR data: counted in their entries and in the impulse_response component) (the CloudSeed engine takes about 9 KB: measured for Jupiter on the pedal; the host count of 129 KB was far too high, see docs/PERFORMANCE_AND_MEMORY.md); null means not measured.",
  "regions": {
   "dtcm": 131072,
   "ram_d2": 262144,
@@ -15,8 +15,9 @@
   "ram_d2": 0,
   "sram": 235172,
   "sdram": 512,
-  "heap": 18476,
-  "_calibrated_with": "the build of: autopan, chopper, chorus, cloudseed, compressor, crusher, delay, distortion, drum, dual_echo, flanger, geq, granular_delay, harmonic_tremolo, ir, looper, metro, modulated_tremolo, multi_delay, nam, noise_gate, overdrive, peq, phaser, pitch_shifter, polyoctave, reverb, scifi, spectral_delay, tape_delay, tuner"
+  "heap": 3000,
+  "_calibrated_with": "the build of: autopan, chopper, chorus, cloudseed, compressor, crusher, delay, distortion, drum, dual_echo, flanger, geq, granular_delay, harmonic_tremolo, ir, looper, metro, modulated_tremolo, multi_delay, nam, noise_gate, overdrive, peq, phaser, pitch_shifter, polyoctave, reverb, scifi, spectral_delay, tape_delay, tuner",
+  "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28): Uranus alone used 15,760 B of which Uranus 12,840, so about 2.9 K for the hardware module, the UI pages and the base effect module (0.7 to 4.5 K over the configurations measured, the UI pages grow with the number of effects); was 18 K before, from a FunBox build"
  },
  "components": {
   "cloudseed_pool": {
@@ -47,18 +48,20 @@
    "dtcm": 36,
    "ram_d2": 0,
    "sram": 9220,
-   "sdram": 0
+   "sdram": 0,
+   "heap": 16448,
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28): three global objects in ir_data.cpp (lines 120, 237, 239: 4,104 + 4,104 + 8,240 B) allocated before main, whenever the component is built (IR, NAM, Mars)"
   }
  },
  "effects": {
   "funbox-venus": {
-   "heap": 17280,
+   "heap": 16836,
    "dtcm": 73820,
    "ram_d2": 0,
    "sram": 7122,
    "sdram": 147456,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28, GCC 15.3.1): the bytes _sbrk gave out to this effect's constructor and Init()"
   },
   "funbox-jupiter": {
    "heap": 9216,
@@ -70,13 +73,13 @@
    "heap_source": "measured on the pedal: Show Debug heap used 45 K without Jupiter, 54 K with it"
   },
   "funbox-saturn": {
-   "heap": 1808,
+   "heap": 980,
    "dtcm": 36,
    "ram_d2": 124688,
    "sram": 10630,
    "sdram": 2873600,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28, GCC 15.3.1): the bytes _sbrk gave out to this effect's constructor and Init()"
   },
   "funbox-neptune": {
    "heap": 7373,
@@ -88,22 +91,22 @@
    "heap_source": "measured on the pedal by difference: Show Debug heap used 54 K (with Cassini, without Neptune), 60 K (without Cassini, with Neptune)"
   },
   "funbox-uranus": {
-   "heap": 12992,
+   "heap": 12840,
    "dtcm": 3348,
    "ram_d2": 96000,
    "sram": 8445,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28, GCC 15.3.1): the bytes _sbrk gave out to this effect's constructor and Init()"
   },
   "cloudseed": {
-   "heap": 9216,
+   "heap": 10256,
    "dtcm": 652,
    "ram_d2": 0,
    "sram": 32372,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap_source": "inferred from Jupiter (the same engine; its delay lines are in the SDRAM pool, not on the heap)"
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28, GCC 15.3.1): the bytes _sbrk gave out to this effect's constructor and Init(); the Init() delta between two SetStage calls (the attribution of the same allocation by call stack was only 8.0 K)"
   },
   "modulated_tremolo": {
    "dtcm": 32,
@@ -147,8 +150,8 @@
    "sram": 1262,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 19456,
-   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
+   "heap": 19380,
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28, GCC 15.3.1): the bytes _sbrk gave out to this effect's constructor and Init()"
   },
   "chopper": {
    "dtcm": 462,
@@ -282,8 +285,8 @@
    "sram": 51747,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 9512,
-   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
+   "heap": 9424,
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28, GCC 15.3.1): the bytes _sbrk gave out to this effect's constructor and Init()"
   },
   "scifi": {
    "dtcm": 176,
@@ -291,8 +294,8 @@
    "sram": 12000,
    "sdram": 396100,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 264,
-   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
+   "heap": 11024,
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28, GCC 15.3.1): the bytes _sbrk gave out to this effect's constructor and Init(); 10,760 of it is a global object (scifi_module.cpp:22) allocated before main, which the host count missed"
   },
   "polyoctave": {
    "dtcm": 176,
@@ -300,8 +303,8 @@
    "sram": 10794,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 200,
-   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
+   "heap": 16344,
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28, GCC 15.3.1): the bytes _sbrk gave out to this effect's constructor and Init(); 16,144 of it is a global object (polyoctave_module.cpp:21) allocated before main, which the host count missed"
   },
   "spectral_delay": {
    "dtcm": 13085,
@@ -327,8 +330,8 @@
    "sram": 2476,
    "sdram": 96000,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 6560,
-   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
+   "heap": 6476,
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28, GCC 15.3.1): the bytes _sbrk gave out to this effect's constructor and Init()"
   },
   "ir": {
    "dtcm": 8,
@@ -336,8 +339,8 @@
    "sram": 1758,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 9248,
-   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
+   "heap": 9196,
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28, GCC 15.3.1): the bytes _sbrk gave out to this effect's constructor and Init(); the IR data (global objects) is the impulse_response component"
   },
   "drum": {
    "dtcm": 100,
@@ -372,8 +375,8 @@
    "sram": 7006,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 50480,
-   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
+   "heap": 49472,
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28, GCC 15.3.1): the bytes _sbrk gave out to this effect's constructor and Init() (49,160 of it the Q pitch detector in Init)"
   },
   "harmonic_tremolo": {
    "dtcm": 0,
@@ -417,8 +420,8 @@
    "sram": 2282,
    "sdram": 1920012,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 35000,
-   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
+   "heap": 34560,
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28, GCC 15.3.1): the bytes _sbrk gave out to this effect's constructor and Init()"
   },
   "string_keys": {
    "dtcm": 0,
@@ -444,8 +447,8 @@
    "sram": 4360,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 4584,
-   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
+   "heap": 4508,
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28, GCC 15.3.1): the bytes _sbrk gave out to this effect's constructor and Init()"
   },
   "dattorro": {
    "dtcm": 13,
@@ -453,8 +456,8 @@
    "sram": 3242,
    "sdram": 1048576,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 2280,
-   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
+   "heap": 88,
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28, GCC 15.3.1): the bytes _sbrk gave out to this effect's constructor and Init()"
   },
   "funbox-earth": {
    "dtcm": 49,
@@ -462,8 +465,8 @@
    "sram": 13938,
    "sdram": 2097152,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 24584,
-   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
+   "heap": 21864,
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28, GCC 15.3.1): the bytes _sbrk gave out to this effect's constructor and Init()"
   },
   "funbox-balnea": {
    "dtcm": 24,
@@ -498,8 +501,8 @@
    "sram": 13718,
    "sdram": 672016,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 9040,
-   "heap_source": "host count (heap chunks as newlib rounds them): the module object and what its constructor and Init() allocate with new"
+   "heap": 8936,
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28, GCC 15.3.1): the bytes _sbrk gave out to this effect's constructor and Init()"
   },
   "funbox-mercury": {
    "dtcm": 35096,
@@ -615,8 +618,8 @@
    "sram": 73243,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 11904,
-   "heap_source": "host count: the bench object with its 44 child effects and their parameter arrays (Init allocates nothing more)"
+   "heap": 9624,
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28, GCC 15.3.1): the bytes _sbrk gave out to this effect's constructor and Init()"
   },
   "booster": {
    "dtcm": 16,
@@ -633,8 +636,8 @@
    "sram": 9457,
    "sdram": 0,
    "static_source": "object files (arm-none-eabi-size -A)",
-   "heap": 36776,
-   "heap_source": "host count: the module object, which holds the six springs' delay lines and allpass chains (no other allocation)"
+   "heap": 36688,
+   "heap_source": "measured on the pedal (tools/pedal_measure.sh -s, 2026-10-28, GCC 15.3.1): the bytes _sbrk gave out to this effect's constructor and Init()"
   },
   "multi_phaser": {
    "dtcm": 1880,
@@ -658,13 +661,6 @@
  "observed": [
   {
    "effects": [
-    "funbox-uranus"
-   ],
-   "result": "boots and runs",
-   "note": "audio only; MIDI untested"
-  },
-  {
-   "effects": [
     "funbox-venus"
    ],
    "result": "boots and runs"
@@ -675,39 +671,6 @@
     "funbox-jupiter"
    ],
    "result": "boots and runs"
-  },
-  {
-   "effects": [
-    "funbox-venus",
-    "funbox-jupiter",
-    "funbox-saturn"
-   ],
-   "result": "boots and runs"
-  },
-  {
-   "effects": [
-    "funbox-venus",
-    "funbox-jupiter",
-    "funbox-saturn",
-    "funbox-neptune",
-    "funbox-uranus"
-   ],
-   "result": "does not boot"
-  },
-  {
-   "effects": [
-    "funbox-balnea",
-    "funbox-cassini",
-    "funbox-mars",
-    "funbox-mercury",
-    "funbox-pluto",
-    "funbox-uranus"
-   ],
-   "result": "boots and runs",
-   "heap_used_kb": 45,
-   "heap_free_kb": 116,
-   "note": "Show Debug on the pedal, after boot",
-   "estimated_heap_kb": 26
   },
   {
    "effects": [
@@ -727,6 +690,111 @@
   },
   {
    "effects": [
+    "autopan",
+    "booster",
+    "chainsaw",
+    "chopper",
+    "chorus",
+    "cloudseed",
+    "compressor",
+    "crusher",
+    "delay",
+    "distortion",
+    "dual_echo",
+    "flanger",
+    "geq",
+    "granular_delay",
+    "harmonic_tremolo",
+    "ir",
+    "looper",
+    "modulated_tremolo",
+    "muff_fuzz",
+    "multi_delay",
+    "multi_phaser",
+    "nam",
+    "noise_gate",
+    "overdrive",
+    "peq",
+    "phaser",
+    "pitch_shifter",
+    "polyoctave",
+    "preamp",
+    "reverb",
+    "reverb_delay",
+    "scifi",
+    "scope"
+   ],
+   "result": "boots and runs",
+   "heap_used_kb": 152,
+   "heap_free_kb": 28,
+   "note": "debugger (tools/pedal_measure.sh -s), 15 s after boot at the first effect, nothing touched; GCC 15.3.1; no fault",
+   "estimated_heap_kb": 159
+  },
+  {
+   "effects": [
+    "autopan",
+    "chopper",
+    "chorus",
+    "cloudseed",
+    "compressor",
+    "crusher",
+    "delay",
+    "distortion",
+    "drum",
+    "dual_echo",
+    "flanger",
+    "geq",
+    "granular_delay",
+    "harmonic_tremolo",
+    "ir",
+    "looper",
+    "metro",
+    "modulated_tremolo",
+    "multi_delay",
+    "nam",
+    "noise_gate",
+    "overdrive",
+    "peq",
+    "phaser",
+    "pitch_shifter",
+    "polyoctave",
+    "reverb",
+    "scifi",
+    "spectral_delay",
+    "tape_delay",
+    "tuner"
+   ],
+   "result": "boots and runs",
+   "heap_used_kb": 152,
+   "heap_free_kb": 29,
+   "note": "debugger (tools/pedal_measure.sh -s), 15 s after boot at the first effect, nothing touched; GCC 15.3.1; no fault",
+   "estimated_heap_kb": 158
+  },
+  {
+   "effects": [
+    "bass_dist",
+    "booster",
+    "chainsaw",
+    "crusher",
+    "dist_bench",
+    "distortion",
+    "exciter",
+    "muff_fuzz",
+    "octave_fuzz",
+    "overdrive",
+    "preamp",
+    "screamer",
+    "tape_sat",
+    "wavefolder"
+   ],
+   "result": "boots and runs",
+   "heap_used_kb": 64,
+   "heap_free_kb": 192,
+   "note": "debugger (tools/pedal_measure.sh -s), 15 s after boot at the first effect, nothing touched; GCC 15.3.1; no fault",
+   "estimated_heap_kb": 63
+  },
+  {
+   "effects": [
     "funbox-balnea",
     "funbox-jupiter",
     "funbox-mars",
@@ -737,9 +805,81 @@
    ],
    "result": "boots and runs",
    "heap_used_kb": 60,
-   "heap_free_kb": 101,
-   "note": "Show Debug on the pedal; the heap did not change when each effect was selected in turn (Jupiter, Neptune, Uranus, Balnea, Pluto, Mars, Mercury); audio untested",
+   "heap_free_kb": 102,
+   "note": "debugger (tools/pedal_measure.sh -s), 15 s after boot at the first effect, nothing touched; GCC 15.3.1; no fault",
    "estimated_heap_kb": 60
+  },
+  {
+   "effects": [
+    "funbox-balnea",
+    "funbox-cassini",
+    "funbox-mars",
+    "funbox-mercury",
+    "funbox-pluto",
+    "funbox-uranus"
+   ],
+   "result": "boots and runs",
+   "heap_used_kb": 45,
+   "heap_free_kb": 117,
+   "note": "debugger (tools/pedal_measure.sh -s), 15 s after boot at the first effect, nothing touched; GCC 15.3.1; no fault",
+   "estimated_heap_kb": 45
+  },
+  {
+   "effects": [
+    "funbox-jupiter",
+    "funbox-saturn",
+    "funbox-venus"
+   ],
+   "result": "boots and runs",
+   "heap_used_kb": 29,
+   "heap_free_kb": 105,
+   "note": "debugger (tools/pedal_measure.sh -s), 15 s after boot at the first effect, nothing touched; GCC 15.3.1; no fault",
+   "estimated_heap_kb": 29
+  },
+  {
+   "effects": [
+    "funbox-uranus"
+   ],
+   "result": "boots and runs",
+   "heap_used_kb": 15,
+   "heap_free_kb": 147,
+   "note": "debugger (tools/pedal_measure.sh -s), 15 s after boot at the first effect, nothing touched; GCC 15.3.1; no fault",
+   "estimated_heap_kb": 15
+  },
+  {
+   "effects": [
+    "auto_filter",
+    "dattorro",
+    "duck_compressor",
+    "fm_keys",
+    "funbox-earth",
+    "midi_keys",
+    "modal_keys",
+    "pluckecho",
+    "spring_reverb",
+    "string_keys",
+    "test_tone",
+    "vowel"
+   ],
+   "result": "boots and runs",
+   "heap_used_kb": 98,
+   "heap_free_kb": 158,
+   "note": "debugger (tools/pedal_measure.sh -s), 15 s after boot at the first effect, nothing touched; GCC 15.3.1; no fault",
+   "estimated_heap_kb": 105
+  },
+  {
+   "effects": [
+    "funbox-jupiter",
+    "funbox-neptune",
+    "funbox-saturn",
+    "funbox-uranus",
+    "funbox-venus"
+   ],
+   "result": "does not boot",
+   "heap_used_kb": 40,
+   "heap_free_kb": 0,
+   "note": "debugger (tools/pedal_measure.sh): the heap guard stopped it in Jupiter's Init, 0.2 K left (OUT OF MEMORY); static RAM_D2 216 K leaves 41 K for the heap",
+   "estimated_heap_kb": 49
   }
  ]
 }

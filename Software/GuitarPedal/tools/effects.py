@@ -541,6 +541,7 @@ def budget(effect_ids, m, mem, options=None):
         else:
             heap += figures["heap"]
     for c in comps:
+        heap += mem["components"].get(c, {}).get("heap", 0)  # what a component's global constructors allocate (the IR data: ir_data.cpp)
         if c == "cloudseed_pool":  # its size follows the number of engines (see cloudseed_pool.cpp)
             engines = sum(1 for i in effect_ids if c in m["by_id"][i].get("requires", []))
             used["sdram"] += POOL_BYTES[min(max(engines, 1), 3)] + mem["components"].get(c, {}).get("sdram", 0)  # plus the engine library's lookup tables in SDRAM
