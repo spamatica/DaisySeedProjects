@@ -57,6 +57,10 @@ Subclass `bkshepherd::BaseEffectModule`:
 - Global buffers in an object file stay in the firmware even if unused, which is why only selected effects' sources are compiled.
 - Avoid heap allocation / blocking work in the audio callback.
 
+## Measuring on the pedal (SWD debugger)
+
+With an ST-Link/J-Link on the Daisy Seed and OpenOCD + `arm-none-eabi-gdb`: `tools/pedal_measure.sh [-s]` loads `build/guitarpedal.elf` into SRAM (taking over from the bootloader's start of the app in QSPI) and reads the heap (per effect with `-s`) and boot stack; `tools/pedal_profile.py` selects each effect in turn and reads the CPU load and the stack depth. Both need one working app in QSPI and change the settings saved in QSPI (a different effect layout resets them anyway). Results and the pitfalls: [docs/HANDOVER_hardware_debugging.md](docs/HANDOVER_hardware_debugging.md).
+
 ## Tests
 
 PC-only, no hardware or ARM toolchain (g++ C++20 + python3), in `tests/host/` with a stubbed libDaisy (`tests/host/stub`). See [tests/host/README.md](tests/host/README.md).
