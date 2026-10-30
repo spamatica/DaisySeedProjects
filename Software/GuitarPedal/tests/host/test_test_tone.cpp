@@ -156,6 +156,50 @@ int main() {
         }
     }
 
+    {
+        printf("delay measurement (cable loopback with a simulated delay)\n");
+        // The input is the output delayed by `delay` samples (at least one block in the block path) and scaled by `gain`; `noise` is added
+        struct Loop { int result; int tenths; };
+        auto loopback = [&](size_t delay, float gain, bool perSample, float noise) {
+            static unsigned char mem[sizeof(TestToneModule)];
+            std::memset(mem, 0, sizeof mem);
+            TestToneModule *m = new (mem) TestToneModule();
+            m->Init(kSr);
+            m->SetParameterAsFloat(TestToneModule::LEVEL, -10.0f);
+            const size_t total = 48000, bs = 48;
+            std::vector<float> out(total + bs, 0.0f), in(bs);
+            unsigned seed = 7;
+            auto rnd = [&] { seed = 1664525u * seed + 1013904223u; return (((seed >> 8) & 0xFFFF) / 32768.0f - 1.0f) * noise; };
+            for (size_t b = 0; b < total; b += bs) {
+                if (b == 4800) m->AlternateFootswitchPressed();
+                for (size_t i = 0; i < bs; i++) in[i] = (b + i >= delay ? out[b + i - delay] * gain : 0.0f) + rnd();
+                std::vector<float> l(bs), r(bs);
+                if (perSample) {
+                    for (size_t i = 0; i < bs; i++) { m->ProcessMono(in[i]); l[i] = m->GetAudioLeft(); }
+                } else {
+                    m->ProcessMonoBlock(in.data(), l.data(), r.data(), bs);
+                }
+                for (size_t i = 0; i < bs; i++) out[b + i] = l[i];
+            }
+            Loop res{m->GetMeasureResult(), m->GetDelayTenthsMs()};
+            m->~TestToneModule();
+            return res;
+        };
+        // 480 samples = 10.0 ms, 2400 = 50.0 ms, 7200 = 150.0 ms
+        for (size_t d : {480u, 2400u, 7200u}) {
+            const Loop a = loopback(d, 0.5f, false, 0.0f), b = loopback(d, 0.5f, true, 0.0f);
+            const int want = (int)(d * 10000.0 / kSr);
+            check(a.result == TestToneModule::RESULT_DONE && std::abs(a.tenths - want) <= 1, "the delay is measured (block path)");
+            check(b.result == TestToneModule::RESULT_DONE && std::abs(b.tenths - want) <= 1, "the delay is measured (per-sample path)");
+        }
+        const Loop noisy = loopback(2400, 0.3f, false, 0.003f);
+        check(noisy.result == TestToneModule::RESULT_DONE && std::abs(noisy.tenths - 500) <= 1, "the delay is measured with noise and a weak signal on the input");
+        const Loop late = loopback(10560, 0.5f, false, 0.0f); // 220 ms
+        check(late.result == TestToneModule::RESULT_TIMEOUT, "a delay longer than 200 ms times out");
+        const Loop none = loopback(100000, 0.5f, false, 0.0f); // no cable
+        check(none.result == TestToneModule::RESULT_TIMEOUT, "no signal on the input times out");
+    }
+
     printf("\n%s\n", g_fails ? "TEST TONE: FAILURES" : "TEST TONE OK");
     return g_fails != 0;
 }

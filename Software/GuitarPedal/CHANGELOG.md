@@ -14,7 +14,7 @@
 ## New effects
 - **FunBox ports:** Venus, Earth (GPLv3 opt-in), Jupiter, Saturn, Neptune, Uranus, Balnea, Pluto, Cassini, Mars and Mercury (the newest five need testing on hardware).
 - **Duck Compressor:** a side-chain compressor with a Key Input parameter and a gain-reduction readout.
-- **Test Tone:** a signal generator (sine, square, triangle, noise) for calibrating levels.
+- **Test Tone:** a signal generator (sine, square, triangle, noise) for calibrating levels. The left footswitch measures the delay from output to input over a cable (timeout 200 ms).
 - **Preamp:** a light amp-like tone (two gain stages, tone stack, Clean/Crunch/Lead), a cheaper alternative to a NAM model.
 - **Screamer:** Tube Screamer-style overdrive (mid hump, clean low end) with Classic, Asymmetric and Hard modes.
 - **Muff Fuzz:** Big Muff-style fuzz (booster and two clipping stages, scooped-mid tone control).

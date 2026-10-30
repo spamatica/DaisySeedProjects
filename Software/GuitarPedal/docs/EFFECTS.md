@@ -855,6 +855,7 @@ A signal generator for checking levels together with the pedal's input and outpu
 - **Level** (-60 to 0 dB, default -20.0 dB; Knob 1): the peak level of the tone (for noise, the same RMS level as a sine at that level).
 - **Type** (Sine, Square, Triangle, Noise, default Sine; Knob 2): the signal shape.
 - **Frequency** (20 to 20000 Hz, default 1000 Hz; Knob 3): the pitch of the tone. It is a logarithmic control and does not affect Noise.
+- **Delay measurement** (left footswitch, while the effect is on): connect the output to the input with a cable. The tone stops, after a quarter of a second a short 2 kHz burst is sent, and the time until it shows up on the input is shown on the display in milliseconds (one decimal; the resolution is one sample). If nothing arrives within 200 ms the display shows Timeout. The tone then resumes. The result includes the whole path: the audio block buffering, the converters and the cable.
 
 ## Funbox
 
