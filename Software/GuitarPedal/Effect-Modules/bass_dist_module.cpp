@@ -146,7 +146,7 @@ void BassDistModule::Recompute() {
     m_driveTarget = (1.0f + 40.0f * drive * drive) * topBoost(drive, 0.5f, kTopBoost);
     m_lowsTarget = dbToGain(ParamDisplay::Lin(GetParameterAsFloat(LOWS), -24.0f, 6.0f));
     m_mixTarget = GetParameterAsFloat(MIX);
-    m_outTarget = dbToGain(ParamDisplay::Lin(GetParameterAsFloat(LEVEL), -24.0f, 6.0f)) * kMakeup[m_clipType];
+    m_outTarget = dbToGain(ParamDisplay::Lin(GetParameterAsFloat(LEVEL), -24.0f, 6.0f));
     const float fc = CrossoverHz(GetParameterAsFloat(CROSSOVER));
     m_low1.SetLowpass(fc, 0.7071f, m_sampleRate); // two second-order Butterworth filters in series make a fourth-order Linkwitz-Riley filter
     m_low2.SetLowpass(fc, 0.7071f, m_sampleRate);
@@ -178,6 +178,9 @@ void BassDistModule::Process(const float *in, float *out, size_t n) {
         default: wet = m_soft.Process(v); break;
         }
         wet = m_tone.LP(m_dc.HP(wet));
-        out[i] = (low * m_lows + high * (1.0f - m_mix) + wet * m_mix) * m_out;
+        // the makeup gain level-matches the distorted signal, so the clean path only gets it as the mix goes up (unity at 0%, the input passes through)
+        const float makeup = kMakeup[m_clipType];
+        const float cleanGain = 1.0f + (makeup - 1.0f) * m_mix;
+        out[i] = ((low * m_lows + high * (1.0f - m_mix)) * cleanGain + wet * m_mix * makeup) * m_out;
     }
 }

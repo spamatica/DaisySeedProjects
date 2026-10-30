@@ -11,7 +11,6 @@ Run from this directory (`Software/GuitarPedal`).
 make -j8                      # build for 125B; add VARIANT=1590B | 1590B_SMD | TERRARIUM | FUNBOX
 make program-dfu              # flash over USB DFU (waits for the device; press RESET on the pedal)
 ./ci/build_libs.sh            # build libDaisy, DaisySP, CloudSeed (once, and after dependency changes)
-./ci/format.sh                # clang-format the project (.clang-format: LLVM-based, 135 columns)
 ```
 
 - Needs `arm-none-eabi-gcc`; a `.gcc_path` file (optional) points the Makefile at a specific toolchain.
@@ -76,6 +75,6 @@ When changing an effect's DSP or adding block processing, add or extend a `test_
 
 ## Conventions
 
-- Namespace `bkshepherd`; module files named `<name>_module.{h,cpp}`; format with clang-format before committing.
+- Namespace `bkshepherd`; module files named `<name>_module.{h,cpp}`.
 - Pre-release: effect order, parameters and presets may change freely (breaking changes are fine until the next stable release). Note user-visible changes in CHANGELOG.md (it has "Breaking or reset-worthy" and "New effects" sections).
 - Some FunBox ports are GPLv3 (opt-in); keep license headers and the `origin` info in `effects.json`.
