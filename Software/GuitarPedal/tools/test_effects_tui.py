@@ -23,7 +23,7 @@ import effects_tui as tui  # noqa: E402
 
 def make_root(path):
     """A copy of the tool's inputs in a temporary directory (the sources are linked): uranus alone selected, no chains."""
-    for name in ("effects.json", "effects-memory.json"):
+    for name in ("effects.json", "effects-resource-usage.json"):
         shutil.copy(os.path.join(fx.ROOT, name), os.path.join(path, name))
     for name in ("Effect-Modules", "configs"):
         os.symlink(os.path.join(fx.ROOT, name), os.path.join(path, name))
@@ -449,6 +449,84 @@ class ChainTest(unittest.TestCase):
         self.assertIn("MIDI CC 20 is already used", text)
         self.assertIn("no parameter NOPE", text)
 
+    # -- the estimated CPU load of a chain (effects-resource-usage.json: cpu_avg / cpu_peak, the callback's own cost counted once)
+    def slots(self, *effects):
+        self.chain["slots"] = [{"tag": "S%d" % i, "effect": e} for i, e in enumerate(effects)]
+
+    def test_the_cpu_of_a_chain_is_the_sum_of_its_effects_over_the_callbacks_own_cost(self):
+        self.slots("nam", "reverb")  # measured on the pedal: 64.8% and 13.0% with 2.3% of that in the callback itself
+        avg, peak, unknown = fx.chain_cpu(self.chain, self.sel.mem)
+        self.assertAlmostEqual(avg, 2.3 + (64.8 - 2.3) + (13.0 - 2.3), places=1)  # about 76%: the figure that the docs give for NAM with the Reverb
+        self.assertGreaterEqual(peak, avg)
+        self.assertEqual(unknown, [])
+        self.assertEqual(self.ed.warnings(), [])
+        self.assertIn("Estimated CPU load: 76%", self.ed.cpu_text())
+
+    def test_a_chain_over_the_limit_is_warned_about(self):
+        self.slots("nam", "cloudseed")  # about 113%
+        warn = " ".join(self.ed.warnings())
+        self.assertIn("over 100%", warn)
+        self.assertIn("overrun", warn)
+        self.assertIn("chain TremVerb", " ".join(fx.all_chain_warnings(self.sel.chains, self.sel.mem)))
+
+    def test_a_chain_close_to_the_limit_is_warned_about_but_not_blocked(self):
+        self.slots("nam", "spring_reverb")  # about 88%
+        warn = " ".join(self.ed.warnings())
+        self.assertIn("close to the limit", warn)
+        self.assertNotIn("over 100%", warn)
+        self.assertFalse(any("CPU" in p for p in self.ed.problems()))  # a warning, not a problem: the chain can still be saved
+
+    def test_a_peak_over_the_limit_is_warned_about_even_when_the_average_is_not(self):
+        self.slots("cloudseed", "funbox-mars")  # about 92% on average, a bit over 100% at the peak
+        avg, peak, _ = fx.chain_cpu(self.chain, self.sel.mem)
+        self.assertLess(avg, 100.0)
+        self.assertGreaterEqual(peak, 100.0)
+        self.assertIn("at the peak", " ".join(self.ed.warnings()))
+
+    def test_an_effect_without_a_figure_is_named_and_makes_the_estimate_a_low_one(self):
+        self.slots("nam", "cloudseed", "tapewear")
+        avg, _, unknown = fx.chain_cpu(self.chain, self.sel.mem)
+        self.assertEqual(unknown, ["tapewear"])
+        self.assertIn("tapewear has no CPU figure", " ".join(self.ed.warnings()))
+        self.assertIn("no figure for tapewear", self.ed.cpu_text())
+        self.slots("reverb", "tapewear")  # nothing to warn about, and so nothing about the missing figure either
+        self.assertEqual(self.ed.warnings(), [])
+
+    def test_the_cpu_load_is_listed_for_the_effects_and_the_slots(self):
+        self.assertEqual(self.sel.cpu_text("funbox-uranus"), "21%")
+        self.assertEqual(self.sel.cpu_text("nam"), "65%")
+        self.assertEqual(self.sel.cpu_text("tapewear"), "?")  # not measured
+        self.slots("nam", "tapewear")
+        self.assertIn("CPU   65%", self.ed.slot_text(0))
+        self.assertIn("CPU     ?", self.ed.slot_text(1))
+
+    def test_the_status_bar_of_the_chain_editor_shows_the_combined_load(self):
+        self.slots("reverb", "chorus")  # 13.0% and 9.0%, 2.3% of each in the callback: about 20% together
+        text, sev = self.ed.status()
+        self.assertTrue(text.startswith("chain CPU 20% (peak 22%)  | "), text)
+        self.assertEqual(sev, self.sel.status()[1])  # nothing to be worried about: the colour of the selection
+        self.slots("nam", "spring_reverb")  # about 88%: close to the limit
+        self.assertEqual(self.ed.status()[1], max(1, self.sel.status()[1]))
+        self.slots("nam", "cloudseed")      # about 113%
+        text, sev = self.ed.status()
+        self.assertIn("chain CPU 113%", text)
+        self.assertEqual(sev, 2)
+        self.slots("reverb", "tapewear")    # one has no figure: the estimate is a low one, marked with +?
+        self.assertIn("+?", self.ed.status()[0])
+        self.slots()                        # no slots: the status of the selection as it is
+        self.assertEqual(self.ed.status(), self.sel.status())
+
+    def test_the_status_bar_and_the_report_tell_about_it(self):
+        self.slots("reverb", "chorus")
+        self.assertNotIn("CPU", self.sel.status()[0])
+        self.slots("nam", "cloudseed")
+        text, sev = self.sel.status()
+        self.assertIn("chain CPU high", text)
+        self.assertGreaterEqual(sev, 1)
+        report = "\n".join(self.sel.report_lines())
+        self.assertIn("estimated CPU load 113%", report)
+        self.assertIn("warning: chain TremVerb", report)
+
     def test_cloudseed_effects_can_be_slots_and_big_ones_only_once(self):
         for e in ("cloudseed", "funbox-jupiter", "funbox-neptune"):
             self.assertIsNone(fx.chain_blocked(self.sel.m["by_id"][e], self.sel.m), e)
@@ -504,7 +582,7 @@ class ChainTest(unittest.TestCase):
         self.assertTrue(self.sel.save(), self.sel.message)
         lines = [l for l in open(os.path.join(fx.GEN, "effects_heap.inc")).read().splitlines() if not l.startswith("//")]
         self.assertEqual(len(lines), 2)  # uranus, then the chain
-        self.assertGreater(int(lines[0].split(",")[0]), 0)   # uranus: from effects-memory.json
+        self.assertGreater(int(lines[0].split(",")[0]), 0)   # uranus: from effects-resource-usage.json
         self.assertIn("chain TremVerb", lines[1])
         reverb = self.sel.mem["effects"]["reverb"].get("heap") or 0
         tremolo = self.sel.mem["effects"]["modulated_tremolo"].get("heap") or 0
@@ -514,13 +592,13 @@ class ChainTest(unittest.TestCase):
         import argparse
         import contextlib
         import io
-        saved = fx.MEMORY
-        fx.MEMORY = os.path.join(self.tmp.name, "effects-memory.json")
-        shutil.copy(os.path.join(fx.ROOT, "effects-memory.json"), fx.MEMORY)
+        saved = fx.RESOURCE_USAGE
+        fx.RESOURCE_USAGE = os.path.join(self.tmp.name, "effects-resource-usage.json")
+        shutil.copy(os.path.join(fx.ROOT, "effects-resource-usage.json"), fx.RESOURCE_USAGE)
         try:
             fx.cmd_observe(argparse.Namespace(result="boots and runs", heap_used=100, heap_free=150, note="test", set_base_heap=False))
             fx.cmd_observe(argparse.Namespace(result="does not boot", heap_used=None, heap_free=None, note=None, set_base_heap=False))  # the same selection again replaces it
-            mem = fx.load_json(fx.MEMORY)
+            mem = fx.load_json(fx.RESOURCE_USAGE)
             mine = [o for o in mem["observed"] if o["effects"] == ["funbox-uranus"]]
             self.assertEqual(len(mine), 1)
             self.assertEqual(mine[0]["result"], "does not boot")
@@ -531,11 +609,11 @@ class ChainTest(unittest.TestCase):
             self.assertIn("heap used 100 K, free 150 K", out.getvalue())
             # --set-base-heap: the framework's own heap is what was used minus what the effects are estimated to need
             fx.cmd_observe(argparse.Namespace(result="boots and runs", heap_used=45, heap_free=116, note=None, set_base_heap=True))
-            mem = fx.load_json(fx.MEMORY)
+            mem = fx.load_json(fx.RESOURCE_USAGE)
             effects_heap = mem["effects"]["funbox-uranus"]["heap"]
             self.assertEqual(mem["base"]["heap"], 45 * 1024 - effects_heap)
         finally:
-            fx.MEMORY = saved
+            fx.RESOURCE_USAGE = saved
 
     def test_a_broken_chain_cannot_be_saved(self):
         self.ed.add_slot("reverb", "Rv")
@@ -592,6 +670,8 @@ class ScreenTest(unittest.TestCase):
         self.assertIn("funbox-neptune", text)
         self.assertIn("DTCM", text)
         self.assertIn("SDRAM", text)
+        self.assertIn("CPU", text)  # the column of the measured CPU load ...
+        self.assertIn("21%", text)  # ... Uranus, 20.6% on the pedal
         self.assertIn("h: help", text)
 
     def test_arrows_space_help_and_quit_without_saving(self):

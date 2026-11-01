@@ -24,7 +24,7 @@ Not every effect is compiled: memory is tight (see below). The selection is data
 - `effects.json` — manifest of every effect (class, header, sources, `requires` components, license). **Its order is the menu order and the layout of saved settings.**
 - `effects.config` — the active selection, `ID=y` lines. Presets in `configs/*.config`.
 - `chains.json` — effect chains (several effects as one menu entry, implemented by `EffectChain`).
-- `effects-memory.json` — per-effect memory costs (measured + estimates).
+- `effects-resource-usage.json` — per-effect resource use: memory (measured + estimates) and CPU (`cpu_avg` / `cpu_peak` in percent of the audio callback, each with a `cpu_source`; only where measured on the pedal). Add the CPU figure when you measure a new effect.
 - `tools/effects.py` (wrapper `./pedal_setup`) — TUI and CLI: `list`, `enable`, `disable`, `preset`, `report`, `matrix`, `info`, `lint`, `measure`, `calibrate`, `observe`, `generate`.
 - `generated/` (`effects.mk`, `defines.mk`, `effects_*.inc`) is **generated — do not edit by hand**. `make` regenerates it when the inputs change; `loaded_effects.h` includes the `.inc` files.
 - Effects with `license: gpl` (Dattorro, Earth) need `ALLOW_GPL=y` in `effects.config`.

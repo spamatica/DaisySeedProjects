@@ -32,6 +32,7 @@
 - **Vowel (experimental):** a vowel (formant) filter, the guitar sings A, E, I, O or U; the second footswitch glides to Vowel 2 while held, steps through up to five vowels, one per press (Step), or changes vowel by itself at a settable interval, with the second footswitch holding the current vowel while it is down (Auto).
 
 ## Settings and display
+- **Effect chains: CPU warning** (`pedal_setup`): the load of a chain is estimated from the measured CPU of its effects (effects-resource-usage.json) and the tool warns when it is over 100% (or only the peak is), or close to it; shown in the chain editor (a CPU load for every slot and every effect in its pick lists, and the combined load in its status bar), the status bar, the report and `generate`. The effect list of `pedal_setup` and `pedal_setup list` have a CPU column.
 - **Effect chains: Switches** (a parameter of every chain of two or more effects): the two footswitches switch two of its effects on and off (any pair of them, for a chain of any size: 2+1, 3+1, 3+2, 4+1, ..., named left to right like the footswitches), each LED showing its effect; saved with the chain's presets.
 - **New global settings:** In Gain and Out Gain (-24 to +24 dB), Trails, Lock Knobs (off by default); Show Debug is now saved.
 - **Show Debug readouts:** CPU percentage, averaged input and output peak levels, heap use with an out-of-memory guard.
@@ -60,7 +61,7 @@
 - **Clear everything** (key `x`): deselects every effect, removes the chains and forbids the GPL effects again, to start a selection from scratch (asks first; nothing is written until saved, and an empty selection cannot be saved).
 - **Effect selection** in an interactive full-screen tool (`effects.config`, presets in `configs/`); it asks before allowing a GPL effect.
 - **Chains** can be made in the tool and are generated into the build.
-- **Memory budget** report and a matrix of which effects fit together; boot results are recorded in `effects-memory.json`.
+- **Memory budget** report and a matrix of which effects fit together; boot results are recorded in `effects-resource-usage.json` (the file was `effects-memory.json`; it now also holds each effect's measured CPU load, and `pedal_setup list` shows it).
 - **Only the chosen effects** are compiled.
 - **Memory estimates re-measured** for all 67 effects (code, data and heap) and the framework's base calibrated against a real build of the default set (SRAM base 229 KB, it was 187 KB), so the report's SRAM figure now matches the linker for the default set and for default plus Dattorro and Reverb Delay (which does not fit, as the linker says).
 

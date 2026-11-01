@@ -49,7 +49,7 @@ To opt in: set `ALLOW_GPL=y` in `effects.config` (the tool refuses to build them
 
 ## Memory notes for the tool
 
-* **Only the chosen effects are compiled**, which also stops unused global buffers from taking memory: an object file with an explicitly placed buffer, like Saturn's in `.sram_d2_bss`, keeps all of that section even when nothing uses it. `list`, `report` and `matrix` show the memory budget; `measure` and `calibrate` refresh `effects-memory.json` from the last build
+* **Only the chosen effects are compiled**, which also stops unused global buffers from taking memory: an object file with an explicitly placed buffer, like Saturn's in `.sram_d2_bss`, keeps all of that section even when nothing uses it. `list`, `report` and `matrix` show the memory budget; `measure` and `calibrate` refresh `effects-resource-usage.json` from the last build
   (to measure every effect: `preset everything`, `make -k`, `measure`, then `preset` the real selection and build, `calibrate`). The CloudSeed pool's size follows the number of effects that use the engine
   (`-DCLOUDSEED_ENGINES`, 7.1 / 12.6 / 19.7 MB).
 * **Defines and stale objects:** the selection sets some compiler defines (`-DCLOUDSEED_ENGINES` for the size of the SDRAM pool, the CMSIS table defines for Venus and Saturn). make cannot see that a define changed, so a firmware built after adding a second CloudSeed effect still had the pool of one engine (7.1 MB where two need 9.8 MB):
@@ -57,14 +57,14 @@ To opt in: set `ALLOW_GPL=y` in `effects.config` (the tool refuses to build them
 
 ## Adding and testing effects
 
-Every converted effect has an entry in `effects.json` (what to compile, what it needs: `impulse_response` for Mars, the CloudSeed pool for Jupiter and Neptune, the CMSIS FFT tables for Venus and Saturn) and its memory figures in `effects-memory.json`; **a new effect needs an entry in both.**
+Every converted effect has an entry in `effects.json` (what to compile, what it needs: `impulse_response` for Mars, the CloudSeed pool for Jupiter and Neptune, the CMSIS FFT tables for Venus and Saturn) and its memory figures in `effects-resource-usage.json`; **a new effect needs an entry in both.**
 
 ## Combining Effects (EffectChain)
 
 Chains can be made without writing any C++: in the interactive tool (`./pedal_setup`) press `c`, make a chain, add its effects, and map their parameters to knobs and MIDI CCs.
 They are stored in `chains.json`, and `pedal_setup generate` (or `s` in the tool, or `make`) turns them into `generated/effects_chains.inc`, which `loaded_effects.h` includes. The effects
 of a chain are built even if they are not selected on their own (`[c]` in the list). The tool checks what `effect_chain.cpp` warns about: an effect that keeps big buffers (the reverbs and delays, among them the ones on the CloudSeed engine: CloudSeed, Jupiter and Neptune)
-can exist only once (not also on its own, not in two chains). Only Scope cannot be a slot (it has no parameters to map). The rest of this section describes the C++ the tool writes, which you can still write by hand in `loaded_effects.h`.
+can exist only once (not also on its own, not in two chains). Only Scope cannot be a slot (it has no parameters to map). **CPU load:** the effects of a chain run one after the other, so their loads add up, and a chain that takes more than a block lasts (100%) makes the audio overrun and the menu lock up. The tool estimates the load of a chain from the CPU figures of its effects (`cpu_avg` and `cpu_peak` in `effects-resource-usage.json`, measured on the pedal one effect at a time, with default settings and mostly without a signal; the callback's own cost is counted once) and warns when it is over 100% (also when only the peak is), or close to it (from 85%): in the chain editor (each slot shows its own CPU load, the estimate is a line in it, the combined load is first in the status bar, which turns yellow from 85% and red over 100%, and the warning is shown above it), in the status bar of the selection (`chain CPU high`), in the report, and when `pedal_setup generate` runs. It is a warning, not an error: the chain can still be saved and tried, and only Show Debug on the pedal tells the real load. An effect with no CPU figure is counted as free and named in the warning, so the real load is higher. The rest of this section describes the C++ the tool writes, which you can still write by hand in `loaded_effects.h`.
 
 `Effect-Modules/effect_chain.h` lets you wire two or more effects into a single chained entry in
 `loaded_effects.h`, processed serially (e.g. tremolo into reverb), without changing any of the

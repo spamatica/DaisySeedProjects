@@ -69,7 +69,7 @@ SDRAM `0xC0000000` (64 MB).
   effects, and after loading chains (the heap only grows, so the last value is also the most it ever needed). Compare with the Show Debug figure (whole KB).
 * **Record what you find in the tool**, it is meant for this:
   `./pedal_setup observe "boots and runs" --heap-used <KB> --heap-free <KB> --note "default set, debugger"` and, for the framework's own heap (the base, 18 KB now, measured on a FunBox build):
-  add `--set-base-heap` while the selection built is the one running. Both write into `effects-memory.json` (`observed`, `base`).
+  add `--set-base-heap` while the selection built is the one running. Both write into `effects-resource-usage.json` (`observed`, `base`).
 * **Per-effect heap on the pedal:** the heap did not change when effects were selected in turn (see the `observed` entries), because every effect is created at startup. To get a per-effect figure,
   read `s_break` before and after each `new` in the startup code (`loaded_effects.h` / `guitar_pedal.cpp`; the guard's `SetStage()` names the stage), or build selections with and
   without one effect and take the difference.
@@ -118,13 +118,13 @@ g++ -std=c++20 -O1 -w -I$T/stub -I$T/stub_cmsis -I. -IEffect-Modules -IUtil -I$D
   $DSP/*/*.cpp $LGPL/*/*.cpp $CS/AudioLib/Biquad2.cpp $CS/AudioLib/ShaRandom.cpp $CS/AudioLib/ValueTables.cpp $CS/FastSin.cpp $CS/Utils/Sha256.cpp -o /tmp/heap_all && /tmp/heap_all
 ```
 
-The column "heap chunks" (newlib's rounding: a multiple of 8 plus a 4-byte header, minimum 16) is what went into `effects-memory.json`. Figures kept as measured on the pedal: Jupiter, Neptune, CloudSeed
+The column "heap chunks" (newlib's rounding: a multiple of 8 plus a 4-byte header, minimum 16) is what went into `effects-resource-usage.json`. Figures kept as measured on the pedal: Jupiter, Neptune, CloudSeed
 (the host count for the CloudSeed engine, 164 KB, is far too high). The host has 8-byte pointers, so pointer-heavy objects are overestimated: **that is the first thing the debugger can
 correct** (section 3, point 1).
 
 ## 7. Loose ends
 
-* `pedal_setup report` is only as good as `effects-memory.json`: re-run `measure` (and `calibrate`) after changing an effect's code, and `report` against the real linker output.
+* `pedal_setup report` is only as good as `effects-resource-usage.json`: re-run `measure` (and `calibrate`) after changing an effect's code, and `report` against the real linker output.
 * The memory estimates and the heap guard's startup check (`generated/effects_heap.inc`) use the same heap figures: if the PC counts turn out too high, the HEAP WARNING at startup will cry wolf.
 * The LED fix (`Led` zero-initialisation, commit 055707c) was backported to a checkout of the original project as branch `fix-led-init` (rebased on its `main`, pushed to the user's fork
   twice, once force-pushed, and no PR is open); the user wants nothing pushed to any remote without being given the exact command to run first.
@@ -144,7 +144,7 @@ correct** (section 3, point 1).
 | RAM_D2 (static) | 77,184 B | 77,184 B |
 | SDRAM | 50,498,016 B | 50,498,016 B |
 
-  GCC 15.3 makes the code about 6 KB (1.3%) larger; the static data is identical. `s_break` is at `0x20005fd0` and `end` at `0x3001ad80` in both. All the figures in section 2 and in `effects-memory.json` are from 15.3, so use that compiler (first on the PATH, for example `export PATH=$HOME/bin/arm-gnu-toolchain-15.3.rel2-x86_64-arm-none-eabi/bin:$PATH`) when comparing.
+  GCC 15.3 makes the code about 6 KB (1.3%) larger; the static data is identical. `s_break` is at `0x20005fd0` and `end` at `0x3001ad80` in both. All the figures in section 2 and in `effects-resource-usage.json` are from 15.3, so use that compiler (first on the PATH, for example `export PATH=$HOME/bin/arm-gnu-toolchain-15.3.rel2-x86_64-arm-none-eabi/bin:$PATH`) when comparing.
 
 ## 9. Results 2026-10-28: all configurations run on the pedal (GCC 15.3.1, `-j4`)
 
@@ -174,7 +174,7 @@ midi_keys, modal_keys, pluckecho, spring_reverb, string_keys, test_tone, vowel);
 
 ### What the heap is spent on (bytes, from the `_sbrk` trace; the same in every configuration that has the effect)
 
-| Effect / object | measured | estimate in effects-memory.json | |
+| Effect / object | measured | estimate in effects-resource-usage.json | |
 |---|---|---|---|
 | Crusher (the Q pitch detector's `zero_crossing_collector`, in `Init`) | 49,160 | 50,480 | ok |
 | Spring Reverb | 36,688 | 36,776 | ok |
@@ -204,11 +204,11 @@ happens to be right for `default`/`current` (149 K against 152 K) and 2 to 3 tim
   says nothing about NAM, the CloudSeed engine or the FFT effects while they run: nothing was selected or played, that needs the second phase (select an effect from gdb, paint,
   run, read).
 * CPU cost per effect: not measured.
-* `generated/effects_heap.inc` in git was stale (zeros where `effects-memory.json` has the heap estimates); regenerating it (`make` or `python3 tools/effects.py generate`) changes it.
+* `generated/effects_heap.inc` in git was stale (zeros where `effects-resource-usage.json` has the heap estimates); regenerating it (`make` or `python3 tools/effects.py generate`) changes it.
 
 
 ### What was updated from these results (2026-10-28)
-* `effects-memory.json`: the per-effect `heap` of the 18 effects whose figure was off or missing (Spring Reverb, PluckEcho, Earth, Chorus, Venus, Uranus, Dist Bench, NAM, IR, Mars, Granular Delay, FM Keys, Crusher, Saturn, Dattorro, CloudSeed, and PolyOctave and SciFi, which include their global objects), each with a `heap_source`; the new component heap of `impulse_response` (16,448 B: the IR data, built with IR, NAM or Mars); the base heap 18 K -> 3 K; nine entries in `observed`.
+* `effects-resource-usage.json`: the per-effect `heap` of the 18 effects whose figure was off or missing (Spring Reverb, PluckEcho, Earth, Chorus, Venus, Uranus, Dist Bench, NAM, IR, Mars, Granular Delay, FM Keys, Crusher, Saturn, Dattorro, CloudSeed, and PolyOctave and SciFi, which include their global objects), each with a `heap_source`; the new component heap of `impulse_response` (16,448 B: the IR data, built with IR, NAM or Mars); the base heap 18 K -> 3 K; nine entries in `observed`.
   Jupiter and Neptune were left as they were (5.7 to 8.8 K on the trace, 9.2 K and 7.4 K in the file: they vary with what else is built in); the small effects (under 0.5 KB) were left at their host counts.
 * `tools/effects.py`: `budget` adds a component's `heap` figure (it ignored it before).
 * With these, `pedal_setup report` is within 7% of the pedal for the eight complete runs (-3% to +7%); `funbox-all` stopped at the heap guard, so its figure is a lower bound.

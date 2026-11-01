@@ -13,7 +13,7 @@
 
 namespace bkshepherd {
 
-// heapEstimates: for each effect in the list, what it is estimated to allocate with new (bytes, from effects-memory.json), for the check at startup
+// heapEstimates: for each effect in the list, what it is estimated to allocate with new (bytes, from effects-resource-usage.json), for the check at startup
 void load_effects(int &availableEffectsCount, BaseEffectModule **&availableEffects, const uint32_t *&heapEstimates) {
     // clang-format off
     static BaseEffectModule* effectList[] = {

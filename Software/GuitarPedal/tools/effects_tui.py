@@ -45,6 +45,9 @@ HELP = [
     "  which is only an estimate). Run `tools/effects.py measure` after a build to update",
     "  the figures. A '*' means unsaved changes.",
     "",
+    "The CPU column is the load of the effect on its own, as measured on the pedal (percent",
+    "of the audio callback; 100% is the limit; ? means it has not been measured).",
+    "",
     "A selection that cannot be built (conflicting effects, GPL effects without",
     "ALLOW_GPL) is shown in red and cannot be saved.",
     "",
@@ -58,7 +61,7 @@ class Selector:
     def __init__(self, fx):
         self.fx = fx
         self.m = fx.manifest()
-        self.mem = fx.load_json(fx.MEMORY)
+        self.mem = fx.load_json(fx.RESOURCE_USAGE)
         self.enabled, self.options = fx.read_config()
         self.chains = copy.deepcopy(fx.read_chains())
         self.effects = self.m["effects"]
@@ -156,11 +159,19 @@ class Selector:
         if self.problems():
             text += "  | cannot be built"
             sev = 2
+        elif self.fx.all_chain_warnings(self.chains, self.mem):
+            text += "  | chain CPU high"
+            sev = max(sev, 1)
         if self.options.get("ALLOW_GPL"):
             text += "  | GPL allowed"
         count = "%d effects" % len(self.ids()) + (", %d chains" % len(self.chains) if self.chains else "")
         text = ("* " if self.dirty else "") + count + "  " + text
         return text, sev
+
+    def cpu_text(self, effect_id):
+        """The measured CPU load of an effect (percent of the audio callback, from effects-resource-usage.json; the callback's own cost is in it), or ? if it has not been measured."""
+        cpu = self.mem["effects"].get(effect_id, {}).get("cpu_avg")
+        return "%.0f%%" % cpu if cpu is not None else "?"
 
     def effect_cost(self, e):
         f = self.mem["effects"].get(e["id"], {})
@@ -206,6 +217,11 @@ class Selector:
         lines += ["", "RAM_D2: %d KB static data, %d KB heap (estimate), %d KB to spare" % (static_d2 // 1024, heap // 1024, (self.mem["regions"]["ram_d2"] - used["ram_d2"]) // 1024),
                   "", "verdict: %s%s" % (verdict, (" (" + "; ".join(why) + ")") if why else "")]
         lines += ["problem: " + p for p in self.problems()]
+        for c in self.chains:
+            avg, peak, unknown = self.fx.chain_cpu(c, self.mem)
+            if avg is not None:
+                lines.append("chain %s: estimated CPU load %.0f%% (peak %.0f%%)%s" % (c.get("name", "?"), avg, peak, "; no figure for " + ", ".join(sorted(set(unknown))) if unknown else ""))
+        lines += ["warning: " + w for w in self.fx.all_chain_warnings(self.chains, self.mem)]
         lines += ["", "Press any key to close."]
         return lines
 
@@ -230,6 +246,8 @@ class Selector:
         self.message = "saved: effects.config, chains.json and the generated build files"
         if self.misfit():
             self.message += " (it may not fit on the pedal)"
+        if self.fx.all_chain_warnings(self.chains, self.mem):
+            self.message += " (a chain may use too much CPU: see the report)"
         return True
 
 
@@ -484,7 +502,7 @@ class ChainEditor:
     # -- the rows of the editor: (kind, index, text)
     def slot_text(self, i):
         sl = self.chain["slots"][i]
-        return "%d  [%s]  %s" % (i + 1, sl["tag"], sl["effect"])
+        return "%d  [%s]  %-20s CPU %5s" % (i + 1, sl["tag"], sl["effect"], self.sel.cpu_text(sl["effect"]))
 
     def mapping_text(self, i):
         mp = self.chain["mappings"][i]
@@ -500,7 +518,10 @@ class ChainEditor:
                 ("toggle", 0, "Footswitch:       %s" % ("toggles " + ", ".join(self.slot_label(t) for t in c.get("toggle", [])) if c.get("toggle") else "forwarded to the primary slot (tap tempo ...)")),
                 ("header", 0, "Effects, in the order the audio goes through them"),]
         rows += [("slot", i, "  " + self.slot_text(i)) for i in range(len(c["slots"]))]
-        rows += [("add_slot", 0, "  + add an effect"), ("header", 0, "Knob and MIDI mappings (knobs 1-6; 7-12 are the same knobs after holding the footswitch for a second)")]
+        rows += [("add_slot", 0, "  + add an effect")]
+        if self.cpu_text():
+            rows += [("header", 0, self.cpu_text())]
+        rows += [("header", 0, "Knob and MIDI mappings (knobs 1-6; 7-12 are the same knobs after holding the footswitch for a second)")]
         rows += [("map", i, "  " + self.mapping_text(i)) for i in range(len(c["mappings"]))]
         rows += [("add_map", 0, "  + add a mapping")]
         return rows
@@ -526,6 +547,27 @@ class ChainEditor:
 
     def problems(self):
         return self.fx.chain_problems(self.chain, self.sel.enabled, self.sel.chains, self.sel.m, self.sel.mem)
+
+    def warnings(self):
+        return self.fx.chain_warnings(self.chain, self.sel.mem)
+
+    def status(self):
+        """The status bar of the chain editor: the combined CPU load of the chain (the callback's own cost counted once, so it is less than the sum of the figures of the slots)
+        in front of the status of the selection; the colour is the worse of the two."""
+        text, sev = self.sel.status()
+        avg, peak, unknown = self.fx.chain_cpu(self.chain, self.sel.mem)
+        if avg is None or not self.chain["slots"]:
+            return text, sev
+        cpu = "chain CPU %.0f%% (peak %.0f%%)%s" % (avg, peak, "+?" if unknown else "")
+        limit, tight = self.fx.CPU_LIMIT, self.fx.CPU_TIGHT
+        cpu_sev = 2 if (avg >= limit or peak >= limit) else (1 if avg >= tight else 0)
+        return cpu + "  | " + text, max(sev, cpu_sev)
+
+    def cpu_text(self):
+        avg, peak, unknown = self.fx.chain_cpu(self.chain, self.sel.mem)
+        if avg is None or not self.chain["slots"]:
+            return ""
+        return "Estimated CPU load: %.0f%% (peak %.0f%%)%s" % (avg, peak, "; no figure for " + ", ".join(sorted(set(unknown))) if unknown else "")
 
     # -- changes
     def touch(self):
@@ -703,7 +745,7 @@ def draw(stdscr, sel, colors):
         stdscr.refresh()
         return
     _put(stdscr, 0, 0, " Effects in the firmware", curses.A_BOLD)
-    cols = " %-20s %6s %6s %7s %7s %6s" % ("effect", "code", "DTCM", "RAM_D2", "SDRAM", "heap")
+    cols = " %-20s %6s %6s %7s %7s %6s %5s" % ("effect", "code", "DTCM", "RAM_D2", "SDRAM", "heap", "CPU")
     _put(stdscr, 1, 0, "      " + cols[1:], curses.A_UNDERLINE)
     rows = h - 5
     if sel.cursor < sel.top:
@@ -720,7 +762,8 @@ def draw(stdscr, sel, colors):
         heap = "%d K" % (c["heap"] // 1024) if c["heap"] is not None else "?"
         sdram = "%.1f M" % (c["sdram"] / 1048576) if c["sdram"] else "-"
         k = lambda v: ("%d K" % (v // 1024)) if v else "-"
-        line = " %s %-20s %6s %6s %7s %7s %6s%s" % ("[x]" if on else ("[c]" if sel.in_chain(e["id"]) else "[ ]"), e["id"], k(c["code"]), k(c["dtcm"]), k(c["ram_d2"]), sdram, heap, "  GPL" if e.get("license") == "gpl" else "")
+        line = " %s %-20s %6s %6s %7s %7s %6s %5s%s" % ("[x]" if on else ("[c]" if sel.in_chain(e["id"]) else "[ ]"), e["id"], k(c["code"]), k(c["dtcm"]), k(c["ram_d2"]), sdram, heap, sel.cpu_text(e["id"]),
+                                                       "  GPL" if e.get("license") == "gpl" else "")
         attr = curses.A_REVERSE if i == sel.cursor else 0
         if on or sel.in_chain(e["id"]):
             attr |= curses.A_BOLD | colors.get(1, 0)
@@ -847,6 +890,10 @@ CHAIN_HELP = [
     "the footswitch for a second (the shift bank). An effect that keeps big buffers can only",
     "exist once: in a chain it cannot also be enabled on its own.",
     "",
+    "CPU: each effect shows its measured load; the status bar shows the chain's combined",
+    "load (the callback's own cost counted once, so a little less than the sum). Over 100%",
+    "the audio overruns and the menu locks up: the bar turns red, and from 85% yellow.",
+    "",
     "On the pedal, a chain of two or more effects also has a Switches parameter in its menu:",
     "a choice like 3+1 puts two effects on the left and right footswitches, named left to right",
     "(3+1: effect 3 on the left footswitch, effect 1 on the right; there is a choice for every",
@@ -878,8 +925,10 @@ def edit_chain(stdscr, sel, chain, colors):
                 attr = colors.get(1, 0)
             _put(stdscr, r + 1, 0, text.ljust(w - 1), attr)
         problems = ed.problems()
-        _put(stdscr, h - 3, 1, ("! " + problems[0]) if problems else (ed.message or "Enter: edit   a: add   x: remove   < >: move   h: help   Esc: back"), colors.get(3, 0) if problems else colors.get(4, 0))
-        draw_status(stdscr, sel, colors, hint="Esc: back ")
+        warnings = [] if problems else ed.warnings()
+        _put(stdscr, h - 3, 1, ("! " + problems[0]) if problems else (("CPU: " + warnings[0]) if warnings else (ed.message or "Enter: edit   a: add   x: remove   < >: move   h: help   Esc: back")),
+             colors.get(3, 0) if (problems or warnings) else colors.get(4, 0))
+        draw_status(stdscr, ed, colors, hint="Esc: back ")
         stdscr.refresh()
         key = stdscr.getch()
         kind, idx, _ = ed.current()
@@ -913,8 +962,8 @@ def edit_chain(stdscr, sel, chain, colors):
 
 
 def _add_slot(stdscr, ed):
-    items = ["%-18s %s" % (e["id"], e.get("note", "")) for e in ed.chainable()]
-    pick = _choose(stdscr, "Add an effect to the chain", items)
+    items = ["%-18s %5s  %s" % (e["id"], ed.sel.cpu_text(e["id"]), e.get("note", "")) for e in ed.chainable()]
+    pick = _choose(stdscr, "Add an effect to the chain (id, CPU load)", items)
     if pick is None:
         return
     effect_id = pick.split()[0]
@@ -972,7 +1021,7 @@ def _edit_row(stdscr, ed, kind, idx):
             if tag is not None:
                 ed.set_tag(idx, tag.strip()[:3])
         elif pick:
-            eff = _choose(stdscr, "Effect", ["%-18s %s" % (e["id"], e.get("note", "")) for e in ed.chainable()])
+            eff = _choose(stdscr, "Effect (id, CPU load)", ["%-18s %5s  %s" % (e["id"], ed.sel.cpu_text(e["id"]), e.get("note", "")) for e in ed.chainable()])
             if eff:
                 ed.set_effect(idx, eff.split()[0])
     elif kind == "map":
