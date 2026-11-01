@@ -66,7 +66,7 @@ None of these use tap tempo: they all return false from `AlternateFootswitchForT
 
 ## Effects with nothing special
 
-The second footswitch does nothing and the left LED is simply on while the effect is on: Compressor, Distortion, Reverb, Graphic EQ, Parametric EQ, Tuner, Scope, Test Tone, Mars, Mercury, and the distortion family (Preamp, Screamer, Muff Fuzz, Wavefolder, Exciter, Bass Dist, Octa Fuzz, Tape Sat). Jupiter, Neptune, Saturn and Dattorro are the same, and they also switch tap tempo off explicitly. (Mars and Mercury leave tap tempo on, but without a `SetTempo` the taps have no effect.)
+The second footswitch does nothing and the left LED is simply on while the effect is on: Compressor, Distortion, Reverb, Graphic EQ, Parametric EQ, Tuner, Scope, Test Tone, Mars, Mercury, and the distortion family (Preamp, Screamer, Muff Fuzz, Wavefolder, Exciter, Bass Dist, Octa Fuzz, Tape Sat), and Dirty Verb. Jupiter, Neptune, Saturn and Dattorro are the same, and they also switch tap tempo off explicitly. (Mars and Mercury leave tap tempo on, but without a `SetTempo` the taps have no effect.)
 
 Several more effects have a left-LED function that, in practice, returns the same as the default (see the next section): Modulated Tremolo, SciFi, Spectral Delay, PolyOctave, Pluck Echo, String Keys, MIDI Keys, Modal Keys, FM Keys, Multi Delay and CloudSeed outside wet-only mode.
 

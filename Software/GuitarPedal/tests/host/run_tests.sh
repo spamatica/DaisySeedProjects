@@ -216,6 +216,9 @@ if build "$B/t_auto_filter" $T/test_auto_filter.cpp Effect-Modules/auto_filter_m
 step "Vowel (formant filter, A E I O U, momentary change of vowel on the second footswitch): the formants of each vowel, Voice, Sharp, Glide, footswitch, Mix, block path, bounds"
 if build "$B/t_vowel" $T/test_vowel.cpp Effect-Modules/vowel_module.cpp $BASEMOD; then check "$B/t_vowel"; else FAILS=$((FAILS + 1)); fi
 
+step "Dirty Verb (feedback delay network reverb): decay time, darkness, Damp, Tone, level, Mix, pre-delay, Size, stereo, stability, block path, bounds"
+if build "$B/t_dirty_verb" $T/test_dirty_verb.cpp Effect-Modules/dirty_verb_module.cpp $BASEMOD; then check "$B/t_dirty_verb"; else FAILS=$((FAILS + 1)); fi
+
 step "Multi Phaser (four phasers in series or parallel): the allpass formula, the notches, the sweep rate, routing, feedback, Stereo, switching without clicks, block path, bounds"
 if build "$B/t_multi_phaser" $T/test_multi_phaser.cpp Effect-Modules/multi_phaser_module.cpp $BASEMOD; then check "$B/t_multi_phaser"; else FAILS=$((FAILS + 1)); fi
 

@@ -689,6 +689,16 @@
    "note": "Tape and transformer saturation: unity gain for small signals, warmth (low-end saturation) and high roll-off"
   },
   {
+   "id": "dirty_verb",
+   "class": "DirtyVerbModule",
+   "header": "dirty_verb_module.h",
+   "sources": [
+    "Effect-Modules/dirty_verb_module.cpp"
+   ],
+   "origin": "this project (spamatica)",
+   "note": "Dark, light-weight ambient reverb (feedback delay network, 8 lines) with long tails; the engine is in Util/dirty_verb_engine.h; single-instance only"
+  },
+  {
    "id": "test_tone",
    "class": "TestToneModule",
    "header": "test_tone_module.h",

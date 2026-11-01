@@ -764,6 +764,18 @@
    "cpu_peak": 3.6,
    "cpu_source": "measured on the pedal with tools/pedal_profile.py, 2026-10-28, GCC 15.3.1, -Ofast, default settings, no audio input (effects that do less on silence cost more with a signal); libDaisy CpuLoadMeter for the whole audio callback over 4 s, so it includes the callback without an effect (cpu_callback_base)"
   },
+  "dirty_verb": {
+   "dtcm": 20,
+   "ram_d2": 0,
+   "sram": 13639,
+   "sdram": 819200,
+   "static_source": "object files (arm-none-eabi-size -A), measured 2026-11-01 (GCC 15.3.1): the two reverbs, 819,200 bytes of SDRAM in all",
+   "heap": 1100,
+   "heap_source": "estimate: the module object with the state of two reverbs (about 500 bytes each) and no allocations",
+   "cpu_avg": 56.0,
+   "cpu_peak": null,
+   "cpu_source": "Show Debug on the pedal, read by the user 2026-10-31, at the defaults (Clean Blend 50%: both reverbs run, Feedback Dist 64%, Dist 5%). 26% with the clean reverb out of use (Clean Blend 0%) and the distortion off. CloudSeed was 50% in the same check. Host timing (PC, -Ofast): one reverb about 130 ns/sample, both about 250, Feedback Dist adds 25 to 50."
+  },
   "tape_sat": {
    "dtcm": 8,
    "ram_d2": 0,
