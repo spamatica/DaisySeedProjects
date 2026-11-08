@@ -26,7 +26,7 @@ note is the review; the `.bat`, the code changes and the documentation have **no
 
 It is in the `pedal_setup` script (`exec python3 tools/effects.py`) and in the Makefile's rule that regenerates `generated/effects.mk` and `generated/defines.mk`
 (`python3 tools/effects.py generate`). A Windows Python provides `python` and `py`, not `python3` [assumed; Daisy's page agrees that the command is `python`].
-Expected result: `./pedal_setup` fails in Git BASH, and `make` fails the first time it has to regenerate the effect files (a fresh clone, or after `effects.config` changes).
+Expected result: `./pedal_setup` fails in Git BASH, and `make` fails the first time it has to regenerate the effect files. Since the generated files are no longer in git (2026-11), that is the first `make` of every fresh clone, not just after `effects.config` changes.
 
 ### 2.2 Line endings: scripts checked out with CRLF [repo for the config, assumed for the effect]
 
@@ -43,7 +43,7 @@ Eight `open(..., "w")` calls write in text mode, so on Windows each `\n` becomes
   (`chains.json`), and three that rewrite `effects-resource-usage.json` (`measure`, `calibrate`, `observe`).
 * `tools/effects_tui.py`: the NAM model headers (`models/<stem>.h`) and `models.config`.
 
-The two to worry about are `generated/effects.mk` and `models.config`. A makefile with CRLF can leave a `\r` on the end of values ("No rule to make target
+The generated files are no longer in git (so they are not checked out with CRLF either: only the tool writes them). The two to worry about are `generated/effects.mk` and `models.config`. A makefile with CRLF can leave a `\r` on the end of values ("No rule to make target
 `Effect-Modules/foo.cpp\r`"; it depends on the build of `make`), and `update_models.sh` reads `models.config` line by line and compares `name=y`, which `name=y\r` does not match, so
 NAM setup would silently drop every model. The JSON files would only give noisy diffs.
 

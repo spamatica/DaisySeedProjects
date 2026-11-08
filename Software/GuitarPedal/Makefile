@@ -42,6 +42,7 @@ C_SOURCES += $(CMSIS_DSP_SRC)
 # to CPP_SOURCES, C_SOURCES and C_DEFS; the effect list in loaded_effects.h is generated too. Only the chosen effects are compiled and linked: besides saving build time
 # that matters for memory, since global buffers in an object file can stay in the firmware even if nothing uses them (see docs/PERFORMANCE_AND_MEMORY.md).
 CPP_SOURCES += Effect-Modules/effect_chain.cpp
+# (generated/ is not in git: the first make creates it with the rule below, which needs python; it stops with a message when no effects are selected)
 include generated/effects.mk
 
 # The NAM models are one file each in Effect-Modules/Nam/models/; this regenerates the list of them (Nam/models_list.inc) when a model has been added or removed

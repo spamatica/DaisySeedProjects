@@ -123,7 +123,13 @@ def write_if_changed(path, text):
     return False
 
 
-def generate(quiet=False):
+NO_EFFECTS = ("No effects are selected in effects.config, so there is nothing to build. Choose the effects first: run ./pedal_setup (or `./pedal_setup preset <name>`, "
+              "or `./pedal_setup enable <id>`), or edit effects.config by hand. See docs/GENERATE_FIRMWARE.md.")
+
+
+def generate(quiet=False, strict=False):
+    """Writes the files that the build needs. With strict (what `make` runs) a selection without effects is an error with a message that says what to do; otherwise it is
+    only a warning. Either way nothing is written for it: files for an empty selection would make a firmware without effects that a later `make` found up to date."""
     m = manifest()
     enabled, options = read_config()
     chains = read_chains()
@@ -132,6 +138,12 @@ def generate(quiet=False):
     if problems:
         sys.exit("chains.json: " + "; ".join(problems))
     built = effective_enabled(enabled, chains)
+    if not built:
+        if strict:
+            sys.exit(NO_EFFECTS)
+        if not quiet:
+            print("warning: " + NO_EFFECTS, file=sys.stderr)
+        return []
     effects, comps = resolve(built, options, m)
     standalone = [e for e in effects if e["id"] in enabled]
     os.makedirs(GEN, exist_ok=True)
@@ -855,7 +867,7 @@ def main():
     s = sub.add_parser("preset"); s.add_argument("name")
     s = sub.add_parser("enable"); s.add_argument("ids", nargs="+")
     s = sub.add_parser("disable"); s.add_argument("ids", nargs="+")
-    sub.add_parser("generate")
+    sub.add_parser("generate", help="write the files that the build needs (this is what make runs); fails with a message if no effects are selected")
     s = sub.add_parser("report"); s.add_argument("--config")
     s = sub.add_parser("measure"); s.add_argument("--build-dir", default=os.path.join(ROOT, "build"))
     s = sub.add_parser("calibrate"); s.add_argument("--build-dir", default=os.path.join(ROOT, "build"))
@@ -869,7 +881,7 @@ def main():
         else:
             p.print_help()
             return
-    {"tui": cmd_tui, "lint": cmd_lint, "info": cmd_info, "list": cmd_list, "preset": cmd_preset, "enable": lambda x: cmd_change(x, True), "disable": lambda x: cmd_change(x, False), "generate": lambda x: generate(),
+    {"tui": cmd_tui, "lint": cmd_lint, "info": cmd_info, "list": cmd_list, "preset": cmd_preset, "enable": lambda x: cmd_change(x, True), "disable": lambda x: cmd_change(x, False), "generate": lambda x: generate(strict=True),
      "report": cmd_report, "measure": lambda x: measure(x.build_dir), "calibrate": lambda x: calibrate(x.build_dir), "matrix": cmd_matrix, "observe": cmd_observe}[a.cmd](a)
 
 

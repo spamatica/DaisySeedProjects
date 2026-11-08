@@ -377,6 +377,64 @@ class SelectorTest(unittest.TestCase):
         self.assertIn("GPL", self.sel.detail(gpl))
 
 
+class NoEffectsTest(unittest.TestCase):
+    """A selection without effects: `make` stops with a message that says what to do (and nothing is generated for it)."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        make_root(self.tmp.name)
+        with open(os.path.join(self.tmp.name, "effects.config"), "w") as f:
+            f.write("ALLOW_GPL=n\n# funbox-uranus is not set\n")  # every effect off
+        self.saved = (fx.CONFIG, fx.GEN, fx.CHAINS)
+        fx.CONFIG = os.path.join(self.tmp.name, "effects.config")
+        fx.GEN = os.path.join(self.tmp.name, "generated")
+        fx.CHAINS = os.path.join(self.tmp.name, "chains.json")
+
+    def tearDown(self):
+        fx.CONFIG, fx.GEN, fx.CHAINS = self.saved
+        self.tmp.cleanup()
+
+    def test_the_build_command_fails_and_says_what_to_do(self):
+        with self.assertRaises(SystemExit) as raised:
+            fx.generate(strict=True)
+        text = str(raised.exception)
+        self.assertIn("No effects are selected", text)
+        self.assertIn("./pedal_setup", text)
+        self.assertIn("docs/GENERATE_FIRMWARE.md", text)
+        self.assertFalse(os.path.exists(fx.GEN), "nothing is generated for an empty selection")
+
+    def test_without_strict_it_is_a_warning_and_nothing_is_written(self):
+        import contextlib
+        import io
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            self.assertEqual(fx.generate(), [])
+            fx.generate(quiet=True)  # (the interactive tool saves like this; it does not allow an empty selection anyway)
+        self.assertEqual(err.getvalue().count("No effects are selected"), 1)  # once: quiet says nothing
+        self.assertFalse(os.path.exists(fx.GEN))
+
+    def test_a_chain_alone_is_a_selection(self):
+        with open(fx.CHAINS, "w") as f:
+            f.write('{"chains": [{"name": "Two", "slots": [{"tag": "Sc", "effect": "screamer"}, {"tag": "Ch", "effect": "chainsaw"}], "mappings": [], "primary": 0, "toggle": []}]}\n')
+        fx.generate(strict=True)  # the effects of the chain are built: no failure
+        self.assertTrue(os.path.exists(os.path.join(fx.GEN, "effects.mk")))
+
+    def test_the_command_line_as_make_runs_it(self):
+        env = dict(os.environ, EFFECTS_TOOL_ROOT=self.tmp.name)
+        done = subprocess.run([sys.executable, os.path.join(HERE, "effects.py"), "generate"], capture_output=True, text=True, env=env)
+        self.assertNotEqual(done.returncode, 0)  # so make stops
+        self.assertIn("docs/GENERATE_FIRMWARE.md", done.stderr)
+        self.assertNotIn("Traceback", done.stderr)  # a message, not a stack trace
+        self.assertFalse(os.path.exists(os.path.join(self.tmp.name, "generated")))
+        # disabling the last effect is fine, only a warning: the configuration is what the user asked for
+        with open(os.path.join(self.tmp.name, "effects.config"), "w") as f:
+            f.write("ALLOW_GPL=n\nfunbox-uranus=y\n")
+        done = subprocess.run([sys.executable, os.path.join(HERE, "effects.py"), "disable", "funbox-uranus"], capture_output=True, text=True, env=env)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertIn("No effects are selected", done.stderr)
+        self.assertIn("# funbox-uranus is not set", open(os.path.join(self.tmp.name, "effects.config")).read())
+
+
 class ChainTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

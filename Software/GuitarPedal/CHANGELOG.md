@@ -1,6 +1,7 @@
 # Changelog
 
 - Support for recent gcc versions
+- The generated build files (`generated/`) are no longer in git: the first `make` creates them. A build with no effects selected in `effects.config` stops with a message that points to docs/GENERATE_FIRMWARE.md.
 - Block processing instead of per sample processing (this lowers cpu usage for most effects)
 - Normalized volume levels for many effects
 

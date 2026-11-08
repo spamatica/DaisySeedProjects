@@ -95,7 +95,7 @@ and so on for the other possible options...
 
 ### 4. Build and Deploy a firmware
 
-Before building, choose which effects the firmware contains. See [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md) for how to generate the firmware configuration with `./pedal_setup`.
+Before building, choose which effects the firmware contains. See [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md) for how to generate the firmware configuration with `./pedal_setup`. (The files that the build generates from that choice are not in git: the first `make` creates them. A build with no effect selected stops with a message that points to that document.)
 
 By default this project is configured to use the custom Boot Loader. To get up and running you'll need to do the following:
 

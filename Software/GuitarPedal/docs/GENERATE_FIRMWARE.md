@@ -5,7 +5,7 @@ Which effects go into the firmware, and in which order, is chosen with the effec
 The basic steps:
 
 1. Run `./pedal_setup` and select the effects (arrows to move, space to select, `s` to save, `h` for help), or start from a preset (`./pedal_setup preset <name>`).
-2. Build as described in [README.md](../README.md#4-build-and-deploy-the-code). `make` regenerates the generated files by itself when `effects.config` or `effects.json` has changed.
+2. Build as described in [SETUP.md](SETUP.md#4-build-and-deploy-a-firmware). `make` regenerates the generated files by itself when `effects.config` or `effects.json` has changed.
 3. Flash the firmware. Enabling, disabling or reordering effects changes the layout of the saved settings, which are reset on the next boot.
 
 
@@ -17,7 +17,7 @@ Running `./pedal_setup` without arguments brings up a full-screen tool in the te
 
 The selection is kept in **`effects.config`**. The tool also generates what depends on the choice:
 `generated/effects.mk` (the sources, and the sources and defines of what the chosen effects need, which the `Makefile` includes) and the effect list that `loaded_effects.h` includes.
-`make` regenerates them by itself when `effects.config` changes, so after editing the file (or running one of these) just build:
+`make` regenerates them by itself when `effects.config` changes, so after editing the file (or running one of these) just build. The generated files are **not kept in git** (the `generated/` directory is ignored): a fresh clone gets them with its first `make`, or with `./pedal_setup generate`, and both need Python 3. If `effects.config` selects no effects (and there are no chains), there is nothing to build: `make` and `pedal_setup generate` stop with the message "No effects are selected in effects.config ... See docs/GENERATE_FIRMWARE.md", and nothing is generated; choose effects with `./pedal_setup` (or a preset) first.
 
 ```text
 ./pedal_setup                           # the interactive full-screen selection (curses): arrows to move, space to select, s to save, x to clear everything (no effects, no chains), h for help
