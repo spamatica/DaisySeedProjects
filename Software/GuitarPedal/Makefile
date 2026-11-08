@@ -71,8 +71,13 @@ SYSTEM_FILES_DIR = $(LIBDAISY_DIR)/core
 include $(SYSTEM_FILES_DIR)/Makefile
 
 # Regenerate the effect build files when the selection changes (GNU make remakes an included makefile that is out of date, and then starts over)
-generated/effects.mk generated/defines.mk: effects.config chains.json effects.json tools/effects.py
+# (One command writes all the generated files. defines.mk depends on effects.mk instead of sharing its rule, so that the command runs once, also with -j, and a failure
+# - no effects selected - is reported once; the test is for a defines.mk that was deleted on its own.)
+generated/effects.mk: effects.config chains.json effects.json tools/effects.py
 	python3 tools/effects.py generate
+
+generated/defines.mk: generated/effects.mk
+	@test -f $@ || python3 tools/effects.py generate
 
 # The defines of the selection (generated/defines.mk) change how some sources compile (the size of the CloudSeed pool, the CMSIS FFT tables): without this a changed define
 # left the old object file in the build, and the firmware had a pool for one reverb engine while two were selected.
