@@ -30,6 +30,7 @@
 - **Dist Bench:** a test bench with up to four distortion stages in series.
 - **Auto Filter:** an envelope filter (auto wah) in five types: Dynamic (Boss FT-2), Mutron (Mu-Tron III), Q-Tron, Auto Wah and Bass; Sens, Range, Peak, Decay, Up or Down, and low, band or high pass.
 - **Vowel (experimental):** a vowel (formant) filter, the guitar sings A, E, I, O or U; the second footswitch glides to Vowel 2 while held, steps through up to five vowels, one per press (Step), or changes vowel by itself at a settable interval, with the second footswitch holding the current vowel while it is down (Auto).
+- **Tape Wear:** worn tape (wow and flutter, wear, hiss, dropouts) with a tape stop on the second footswitch; adapted from [terrarium-tape](https://github.com/Aalenberg/terrarium-tape) by Aalenberg (MIT).
 - **Dirty Verb:** a dark ambient reverb (a feedback delay network with eight modulated lines, Decay up to 30 s, Damp, Size, Mod, Tone, PreDelay) with distortion on the tail only: Dist (on the input or the output of the reverb, Dist Place; Soft, Hard or Fizz, which clips only the highs) and a separate Feedback Dist that distorts each delay line of the tail (the reverb itself stays linear, so the Decay is as set), with a level-following drive (Line Comp) so the grit lasts as the tail rings out, and a Clean Blend that runs a second, clean reverb in parallel and crossfades between the two; about half the CPU time of CloudSeed (26% against 50% on the pedal) and without its 4.9 MB pool; more effects are planned for this module.
 
 ## Settings and display

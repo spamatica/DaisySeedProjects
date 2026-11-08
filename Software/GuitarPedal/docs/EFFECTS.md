@@ -5,7 +5,7 @@ These are the effects that can be included in a firmware; which of them your ped
 Each effect below has a short description, where it comes from when that is known, and a list of its parameters. "Knob N" is the knob the parameter is on by default; "menu only" parameters are reached through the parameter menu. Ranges and defaults are the values the display shows.
 
 - [Gain, Distortion and Saturation](#gain-distortion-and-saturation): Booster, Overdrive, Screamer, Distortion, Chainsaw, Muff Fuzz, Octa Fuzz, Bass Dist, Preamp, Wavefolder, Crusher, Exciter, Tape Sat, Dist Bench
-- [Modulation](#modulation): Tremolo, Harm Trem, AutoPan, Auto Filter, Vowel, Chopper, Chorus, Phaser, Multi Phaser, Flanger
+- [Modulation](#modulation): Tremolo, Harm Trem, AutoPan, Auto Filter, Vowel, Chopper, Chorus, Phaser, Multi Phaser, Flanger, Tape Wear
 - [Delay](#delay): Delay, Multi Delay, Tape Delay, Dual Echo, GranDelay, SpctDelay, PluckEcho
 - [Reverb](#reverb): Reverb, Spring Reverb, CloudSeed, Dirty Verb, Dattorro, Verb Delay
 - [Pitch](#pitch): Pitch, PolyOctave, SciFi
@@ -390,6 +390,24 @@ Uses the flanger from the DaisySP library (Electrosmith, MIT).
 - **Depth** (0 to 93%, default 30%; Knob 4): how far the delay moves.
 - **Feedback** (0 to 97%, default 24%; Knob 5): amount of the output fed back into the delay. High values ring and whistle.
 - The left LED brightness follows the Mix setting.
+
+### Tape Wear
+
+The sound of worn tape: the pitch wobbles slowly (wow) and quickly (flutter), the tone gets darker and more compressed, hiss creeps in and the tape drops out now and then. The second footswitch is a tape stop: hold it and the tape slows down, the pitch falls and the sound fades away; let go and the tape runs up to speed again. The wet signal is delayed by about 14 ms, so at a mix between 0 and 100% the delayed and the dry signal together give a slight chorus-like comb sound; at Mix 100% it is only the tape.
+
+Adapted from [terrarium-tape](https://github.com/Aalenberg/terrarium-tape) by Aalenberg (MIT), a tape-wear effect for the PedalPCB Terrarium. The original's switches are menu items here, the saturation has unity gain for small signals, and the dropouts last 20 to 70 ms (see `Effect-Modules/TapeWear/README.md`). Single-instance only (it cannot be used twice in a chain).
+
+- **Wear** (0 to 100%, default 40%; Knob 1): a darker tape (the high cut goes from 18 kHz down to 5 kHz), more saturation and more hiss.
+- **Wow** (0 to 100%, default 30%; Knob 2): depth of the slow pitch wobble (up to 6 ms of delay at 0.28 Hz, 12 ms with Unstable).
+- **Flutter** (0 to 100%, default 30%; Knob 3): depth of the fast pitch wobble (up to 1.2 ms at 5.4 Hz).
+- **Dropouts** (0 to 100%, default 0%; Knob 4): how often the tape drops out, up to about twice a second. A dropout lasts 20 to 70 ms and lowers the signal to 8%.
+- **Mix** (0 to 100%, default 100%; Knob 5): blend of the dry signal and the tape.
+- **Level** (-24 to +6 dB, default 0 dB; Knob 6): level of the tape signal.
+- **Hiss** (off, on; menu only): extra tape hiss.
+- **Dark** (off, on; menu only): a darker tape bandwidth (58% of the cutoff).
+- **Unstable** (off, on; menu only): deeper, faster and less regular wow and flutter.
+- **Extra Sat** (off, on; menu only): extra saturation.
+- The second footswitch is the tape stop (hold); the left LED is bright while it is held.
 
 ## Delay
 

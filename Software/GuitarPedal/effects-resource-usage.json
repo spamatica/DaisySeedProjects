@@ -788,6 +788,15 @@
    "cpu_peak": 3.9,
    "cpu_source": "measured on the pedal with tools/pedal_profile.py, 2026-10-28, GCC 15.3.1, -Ofast, default settings, no audio input (effects that do less on silence cost more with a signal); libDaisy CpuLoadMeter for the whole audio callback over 4 s, so it includes the callback without an effect (cpu_callback_base)"
   },
+  "tapewear": {
+   "dtcm": 8,
+   "ram_d2": 0,
+   "sram": 5200,
+   "sdram": 65536,
+   "static_source": "estimate (the delay line of 16384 floats in SDRAM, the rest like tape_sat); run `./pedal_setup measure` after a build",
+   "heap": 256,
+   "heap_source": "estimate: like tape_sat, the module object only"
+  },
   "vowel": {
    "dtcm": 736,
    "ram_d2": 0,

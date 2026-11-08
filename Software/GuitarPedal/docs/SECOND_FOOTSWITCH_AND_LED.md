@@ -49,6 +49,7 @@ None of these use tap tempo: they all return false from `AlternateFootswitchForT
 | Venus | momentary freeze while pressed | on while frozen (also when the Freeze parameter is on) |
 | Earth | the FS Action parameter selects a momentary action: freeze the reverb, swell the overdrive, or octave on | on while pressed |
 | Vowel | the Footswitch parameter picks the mode. *Vowel 2*: momentary change to Vowel 2 while pressed (the filter glides there and back). *Step*: every press goes to the next of up to five vowels. *Auto*: the vowels change by themselves at the Interval, the current vowel is held while the footswitch is down and the sequence goes on when it is released | Vowel 2: bright while held, dim otherwise. Step: brighter with every step. Auto: flashes at every change, steady while held |
+| Tape Wear | tape stop: the tape slows down while the footswitch is held and runs up to speed on release | on while held, dim otherwise |
 | Pitch Shifter | momentary or latching shift, depending on the Mode parameter (press shifts, release returns) | on (the effect has no LED function of its own) |
 | Balnea | taps set the Time (the first two taps only start the count; the third and later set it from the interval). In Tap Seq mode each tap advances the stage. Holding for a time gives self-oscillation, which ends on release | blinks with the delay; brighter during self-oscillation |
 

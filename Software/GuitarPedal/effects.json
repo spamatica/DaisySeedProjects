@@ -699,6 +699,16 @@
    "note": "Dark, light-weight ambient reverb (feedback delay network, 8 lines) with long tails; the engine is in Util/dirty_verb_engine.h; single-instance only"
   },
   {
+   "id": "tapewear",
+   "origin": "terrarium-tape (Aalenberg), MIT",
+   "class": "TapeWearModule",
+   "header": "tapewear_module.h",
+   "sources": [
+    "Effect-Modules/tapewear_module.cpp"
+   ],
+   "note": "Worn tape: wow and flutter, wear (dark, saturated, hiss), dropouts and a tape stop on the second footswitch; adapted from terrarium-tape (MIT); single-instance only"
+  },
+  {
    "id": "test_tone",
    "class": "TestToneModule",
    "header": "test_tone_module.h",

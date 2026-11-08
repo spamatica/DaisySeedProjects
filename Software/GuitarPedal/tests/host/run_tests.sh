@@ -216,6 +216,9 @@ if build "$B/t_auto_filter" $T/test_auto_filter.cpp Effect-Modules/auto_filter_m
 step "Vowel (formant filter, A E I O U, momentary change of vowel on the second footswitch): the formants of each vowel, Voice, Sharp, Glide, footswitch, Mix, block path, bounds"
 if build "$B/t_vowel" $T/test_vowel.cpp Effect-Modules/vowel_module.cpp $BASEMOD; then check "$B/t_vowel"; else FAILS=$((FAILS + 1)); fi
 
+step "Tape Wear (wow, flutter, wear, hiss, dropouts, tape stop on the second footswitch): unity gain, Mix, the pitch wobble, Dark, hiss, dropouts, tape stop, block path, bounds"
+if build "$B/t_tapewear" $T/test_tapewear.cpp Effect-Modules/tapewear_module.cpp $BASEMOD; then check "$B/t_tapewear"; else FAILS=$((FAILS + 1)); fi
+
 step "Dirty Verb (feedback delay network reverb): decay time, darkness, Damp, Tone, level, Mix, pre-delay, Size, stereo, stability, block path, bounds"
 if build "$B/t_dirty_verb" $T/test_dirty_verb.cpp Effect-Modules/dirty_verb_module.cpp $BASEMOD; then check "$B/t_dirty_verb"; else FAILS=$((FAILS + 1)); fi
 
