@@ -4,7 +4,7 @@ This document goes into detail on how to get everything up and running.
 
 ## Getting Started
 
-This fork of the bkshepherd pedal currently does not supply any pre-compiled binaries, there are now too many options and effects to provide a generic default.
+This fork of the bkshepherd pedal currently does not supply any pre-compiled binaries, there are now too many options and effects to provide meaningful generic default.
 
 Instead it is recommended to setup your local development environment for building your own.
 

@@ -31,7 +31,11 @@ The rotary encoder underneath the screen controls the menu system. Turn the enco
 ### Footswitches and LEDs
 
 - **Primary (right):** Press to turn the selected effect on or bypass it. Hold for about two seconds to jump to the tuner (assuming it's included in the build). In an effect chain whose **Switches** parameter is not Normal, a press switches one of the chain's effects instead (see below).
-- **Secondary (left):** Its action depends on the selected effect. Tap it three times, each within two seconds of the one before, to set the tempo when that effect supports tempo; the tempo is taken from the last two taps, and every further tap in the series adjusts it again. Press and release actions can also control effect-specific features such as a looper. Holding for about one second triggers the effect's hold action; in a chain configured with a second knob bank, this switches banks and displays `SHIFT`. In an effect chain whose **Switches** parameter is not Normal, a press switches one of the chain's effects instead, and none of the above applies (see below).
+- **Secondary (left):** Its action depends on the selected effect and configuration. 
+    - TEMPO: Tap it three times, each within two seconds of the one before, to set the tempo when that effect supports tempo; the tempo is taken from the last two taps, and every further tap in the series adjusts it again. 
+    - Effect specific: Press and release actions can also control effect-specific features such as a looper. Holding for about one second triggers the effect's hold action; 
+    - Effect Chain Second knob bank: In a chain configured with a second knob bank, this switches banks and displays `SHIFT`. 
+    - Effect Chain **Switches**: In an effect chain whose **Switches** parameter is not Normal, a press switches one of the chain's effects instead, see more below.
 - **Effect selection shortcut:** Hold the secondary switch and turn the encoder to move through the effect list. Note that you can also select the effect from the menu system, by turning the encoder to the "Effect" menu item.
 - **Manual save:** Hold both footswitches for about two seconds to save the current effect's settings to its selected preset. The display shows a save confirmation. If auto-save is off (the default), effect parameters will return to their previous state if the pedal is rebooted, or when switching effects.
 
@@ -69,7 +73,7 @@ In the settings menu a number of global options can be configured.
 - **MIDI effect and preset recall:** A plain Program Change still selects an effect by its zero-based position in the firmware's effect list. To select both an effect and one of its saved presets, send Bank Select MSB (CC0), Bank Select LSB (CC32), then Program Change. The pedal uses the combined bank number to select the effect and the Program Change value to select that effect's saved preset. Bank 0 is reserved for legacy behavior, so the effect's bank number is its zero-based effect index plus one. For example, effect 4, preset 2 uses `CC0=0`, `CC32=5`, `PC=2`. A bank number of 5 is encoded as MSB 0 and LSB 5. Some controller editors display values as 1-128; the transmitted MIDI values are 0-127. The bank is consumed by the next Program Change, so configure the switcher to send the bank and Program Change with each recall. If the bank/effect or preset does not exist, the selection is ignored or the effect is selected without loading a preset, respectively.
 - **Reserved MIDI CCs:** CC0 and CC32 are used for Bank Select and are not available for effect parameters. Multi Delay Tap Mode now uses CC33 instead of CC32.
 - **Auto-save:** After parameter changes stop for five seconds, saves that effect's settings to Preset 0. This overwrites Preset 0; turn it off if you use that preset for a manual patch, or want the pedal to always return to a saved state on startup.
-- **Lock Knobs:** Ignores the knobs, so that parameters are only changed from the display and a bumped knob changes nothing. Off by default (the knobs work); the setting is saved, so a pedal that already has saved settings keeps its current choice.
+- **Lock Knobs:** Ignores the knobs, so that parameters are only changed from the display and a bumped knob changes nothing. Off by default (the knobs work); the setting is saved.
 - **Show Debug:** Draws the CPU load (average/peak %) and the input and output levels on the effect screen, along with the heap use, to help calibrate levels and check the load of an effect. Off by default.
 - **Trails:** Lets delay and reverb tails ring out after the effect is turned off instead of cutting them. It does not apply with True Bypass, and the length of the tail depends on the effect. On by default.
 - **In Gain:** Gain in dB (-24 to +24, in steps of 0.5; the encoder's coarse step is 3 dB) applied to the input before it reaches the effect and the dry signal, to calibrate the pedal to your instrument or to the level of the rest of the rig. The input level readout of Show Debug shows the level after this gain.
@@ -78,5 +82,5 @@ In the settings menu a number of global options can be configured.
 
 ## Effects
 
-For the current set see the [effects](EFFECTS.md) document.
+For the current set see [effects](EFFECTS.md).
 
