@@ -131,3 +131,11 @@ In this order; note for each step what happened, with the exact error text.
 * Electro-Smith, Windows toolchain page: <https://docs.daisy.audio/tutorials/toolchain-windows/> (Git for Windows and Git BASH, `DaisyToolchain-1.1.0-win64.exe`, Python not from the Microsoft Store,
   `python` and not `py`). It does not list the tools the installer contains; the page it refers to for that ("Understanding the Toolchain") was not read.
 * The pages that the two above link to for Zadig and for the toolchain contents were not read.
+
+## 7. Update 2026-11: what was done on Windows (branch `windows-testing`)
+
+* Tried in a Windows VM with Git for Windows and the Daisy toolchain: `make` builds the firmware in Git BASH. Flashing not tried yet.
+* `windows-curses` has wheels only up to Python 3.13 (the newest Python at the time had none): the tool needs 3.13, in a venv. Running `python3.13 tools\effects.py` after activating a venv uses the **system** Python, because a Windows venv has only `python.exe`: use `python` or `.venv\Scripts\python.exe`.
+* `pedal_setup.bat` (section 4, point 2) is written and works: it makes `.venv` with `windows-curses`, adds Git's `usr\bin` (for `sh`) to PATH, and started from Git BASH without arguments opens a real console window (it detects `MSYSTEM`). Pitfall met: a variable set inside a parenthesised block is not visible to `%VAR%` in the same block, so the script uses labels and `goto`.
+* **NAM level calibration does not work out of the box on Windows:** `update_models.sh --calibrate` builds a test program for the PC with g++ (`tests/host/calibrate_nam.sh`), and the Daisy Toolchain Installer only ships `arm-none-eabi-gcc`. A separate `.bat` for it was written and dropped. It is documented in `docs/GENERATE_FIRMWARE.md`: needs a native g++ (MSYS2), run by hand. Not tried with one.
+* Still open: sections 4 point 1 and 3, and the checks of section 5 not listed here.
