@@ -14,7 +14,7 @@ For general setup see [setup](./docs/SETUP.md) document
 
 ### Software Update - October 2026
 
-See ReleaseNote
+See the [release note](./ReleaseNote_v1.0.0).
 
 ### Software Update - September 2026
 

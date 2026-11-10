@@ -1,6 +1,6 @@
 # Generating the firmware
 
-Which effects go into the firmware, and in which order, is chosen with the effect selection tool **`./pedal_setup`** (Python 3, no packages needed; run it from this directory, any arguments are passed on to the tool). The result is stored in `effects.config`, and the tool generates the files the build needs from it, so `loaded_effects.h` and the `Makefile` are not edited by hand. This document describes the tool, the limits a selection has to stay within, and how to combine effects into chains. For the toolchain, the hardware variant and flashing, see [README.md](../README.md#getting-started).
+Which effects go into the firmware, and in which order, is chosen with the effect selection tool **`./pedal_setup`** (Python 3, no packages needed; run it from this directory, any arguments are passed on to the tool). The result is stored in `effects.config`, and the tool generates the files the build needs from it, so `loaded_effects.h` and the `Makefile` are not edited by hand. This document describes the tool, the limits a selection has to stay within, and how to combine effects into chains. For the toolchain, the hardware variant and flashing, see [SETUP.md](SETUP.md#getting-started).
 
 The basic steps:
 
