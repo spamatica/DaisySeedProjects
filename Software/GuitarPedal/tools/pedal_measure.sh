@@ -1,6 +1,6 @@
 #!/bin/bash
 # Loads build/guitarpedal.elf into the Daisy's AXI SRAM through an SWD debugger (OpenOCD + gdb), lets it run, and reads the memory use:
-# heap used (per effect, through a breakpoint on heapguard::SetStage) and the stack high-water mark (painted DTCM). Details: docs/HANDOVER_hardware_debugging.md.
+# heap used (per effect, through a breakpoint on heapguard::SetStage) and the stack high-water mark (painted DTCM). Details: docs/internal/HANDOVER_hardware_debugging.md.
 #
 #   tools/pedal_measure.sh [-t seconds] [-o outfile] [-s]    (-s: trace every _sbrk call with its call stack, to attribute the heap to the effects that allocate it; slow)      (arm-none-eabi-* must be on the PATH; the ELF must have been built with the heap guard)
 #

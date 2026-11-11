@@ -14,7 +14,7 @@ The pedal gets no audio input: effects see silence, so anything that skips work 
 at the entry of the audio callback, so that no block is cut in the middle (the timer behind System::GetTick keeps running while halted, a cut block would read as an overrun).
 
 Run from Software/GuitarPedal with arm-none-eabi-* on the PATH:   tools/pedal_profile.py [-o result.json] [--settle 1.5] [--window 4]
-Settings in QSPI are changed by this (the active effect is saved); a different effect layout resets them anyway (see docs/HANDOVER_hardware_debugging.md).
+Settings in QSPI are changed by this (the active effect is saved); a different effect layout resets them anyway (see docs/internal/HANDOVER_hardware_debugging.md).
 """
 import argparse
 import json

@@ -1,7 +1,7 @@
 # AGENTS.md
 
 Firmware for a multi-effect guitar pedal on the Electro-smith Daisy Seed (STM32H750, ARM Cortex-M7), C++20. Hardware variants: 125B (default), 1590B, 1590B_SMD, Terrarium, FunBox.
-User-facing docs: [README.md](README.md), [docs/](docs/) (SETUP, GENERATE_FIRMWARE, PERFORMANCE_AND_MEMORY, EFFECTS, USER_MANUAL_125B). Release history: [CHANGELOG.md](CHANGELOG.md).
+User-facing docs: [README.md](README.md), [docs/](docs/) (SETUP, GENERATE_FIRMWARE, EFFECTS, USER_MANUAL_125B; internal notes, reviews and performance/memory notes in [docs/internal/](docs/internal/)). Release history: [ReleaseNote_v1.0.0.md](ReleaseNote_v1.0.0.md).
 
 ## Build
 
@@ -52,13 +52,13 @@ Subclass `bkshepherd::BaseEffectModule`:
 
 ## Memory and performance constraints
 
-- The heap lives in RAM_D2 (256 KB, shared with `.sram_d2_bss`) and **sbrk is unchecked** — over-allocation locks up at boot. Large buffers go in SDRAM (`DSY_SDRAM_BSS`, slow). Use `./pedal_setup report` to see whether a selection fits, and read [docs/PERFORMANCE_AND_MEMORY.md](docs/PERFORMANCE_AND_MEMORY.md) before adding buffers or effects.
+- The heap lives in RAM_D2 (256 KB, shared with `.sram_d2_bss`) and **sbrk is unchecked** — over-allocation locks up at boot. Large buffers go in SDRAM (`DSY_SDRAM_BSS`, slow). Use `./pedal_setup report` to see whether a selection fits, and read [docs/internal/PERFORMANCE_AND_MEMORY.md](docs/internal/PERFORMANCE_AND_MEMORY.md) before adding buffers or effects.
 - Global buffers in an object file stay in the firmware even if unused, which is why only selected effects' sources are compiled.
 - Avoid heap allocation / blocking work in the audio callback.
 
 ## Measuring on the pedal (SWD debugger)
 
-With an ST-Link/J-Link on the Daisy Seed and OpenOCD + `arm-none-eabi-gdb`: `tools/pedal_measure.sh [-s]` loads `build/guitarpedal.elf` into SRAM (taking over from the bootloader's start of the app in QSPI) and reads the heap (per effect with `-s`) and boot stack; `tools/pedal_profile.py` selects each effect in turn and reads the CPU load and the stack depth. Both need one working app in QSPI and change the settings saved in QSPI (a different effect layout resets them anyway). Results and the pitfalls: [docs/HANDOVER_hardware_debugging.md](docs/HANDOVER_hardware_debugging.md).
+With an ST-Link/J-Link on the Daisy Seed and OpenOCD + `arm-none-eabi-gdb`: `tools/pedal_measure.sh [-s]` loads `build/guitarpedal.elf` into SRAM (taking over from the bootloader's start of the app in QSPI) and reads the heap (per effect with `-s`) and boot stack; `tools/pedal_profile.py` selects each effect in turn and reads the CPU load and the stack depth. Both need one working app in QSPI and change the settings saved in QSPI (a different effect layout resets them anyway). Results and the pitfalls: [docs/internal/HANDOVER_hardware_debugging.md](docs/internal/HANDOVER_hardware_debugging.md).
 
 ## Tests
 
@@ -76,5 +76,5 @@ When changing an effect's DSP or adding block processing, add or extend a `test_
 ## Conventions
 
 - Namespace `bkshepherd`; module files named `<name>_module.{h,cpp}`.
-- Pre-release: effect order, parameters and presets may change freely (breaking changes are fine until the next stable release). Note user-visible changes in CHANGELOG.md (it has "Breaking or reset-worthy" and "New effects" sections).
+- Pre-release: effect order, parameters and presets may change freely (breaking changes are fine until the next stable release). Note user-visible changes in ReleaseNote_v1.0.0.md (it has "Breaking or reset-worthy" and "New effects" sections).
 - Some FunBox ports are GPLv3 (opt-in); keep license headers and the `origin` info in `effects.json`.

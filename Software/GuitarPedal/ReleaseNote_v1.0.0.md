@@ -57,6 +57,6 @@ direct purpose to be more end user friendly and add more effects.
 
 ## Documentation
 - **`GENERATE_FIRMWARE.md`:** the tool, the memory limits, the GPL opt-in and chains.
-- **`SECOND_FOOTSWITCH_AND_LED.md`:** how every effect uses the second footswitch and LED, and open points.
-- **`PERFORMANCE_AND_MEMORY.md`** section 9: CPU load measured on the pedal and what it means for chains.
+- **`docs/internal/SECOND_FOOTSWITCH_AND_LED.md`:** how every effect uses the second footswitch and LED, and open points.
+- **`docs/internal/PERFORMANCE_AND_MEMORY.md`** section 9: CPU load measured on the pedal and what it means for chains.
 - **User manual:** no default firmware, all settings listed, three-tap tempo.

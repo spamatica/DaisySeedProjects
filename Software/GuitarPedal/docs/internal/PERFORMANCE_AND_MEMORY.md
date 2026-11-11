@@ -2,7 +2,7 @@
 
 Written for anyone who picks this up later: what was learned while converting the FunBox effects (Venus, Jupiter, Saturn, Neptune, Uranus, and later Balnea, Pluto, Cassini, Mars, Mercury) about the CPU and memory limits of the pedal, which
 optimisations made a difference and by how much, what each effect needs in memory, how the compiler change affected things, and a first draft of a matrix of which effects can be enabled together.
-The history of the work it describes is in `CHANGELOG.md`.
+The history of the work it describes is in `ReleaseNote_v1.0.0.md`.
 
 **How reliable is it?** Each figure below says where it comes from. *Measured on the pedal* means the author read it off the pedal's Show Debug screen (CPU average/peak, the timing lines)
 or saw it boot. *Build report* means the linker's memory table. *Host* means measured on the PC with the host tools in `tests/host/`. *Estimate* or *inferred* means exactly that. Nothing was
@@ -184,7 +184,7 @@ The Makefile and `loaded_effects.h` enable Uranus and the five newest effects at
 * **`tests/host/run_heap_report.sh`:** the heap table in section 2 (needs the host toolchain only; counts `new` during each effect's constructor and `Init()`).
 * **Build report and ELF:** the linker's "Memory region" table; `arm-none-eabi-nm build/guitarpedal.elf | grep ' end$'`; `arm-none-eabi-readelf -S` and `-p .comment`.
 * **Host tests** (`tests/host/README.md`): `run_tests.sh` (block path equals per-sample path, signal paths, controls), `run_level_tests.sh` (default levels), `run_defaults_audit.sh` (defaults applied at startup).
-* **Effect selection tool (`pedal_setup`):** which effects are built, the generated files, the defines and stale objects, and the memory budget commands are described in [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md).
+* **Effect selection tool (`pedal_setup`):** which effects are built, the generated files, the defines and stale objects, and the memory budget commands are described in [GENERATE_FIRMWARE.md](../GENERATE_FIRMWARE.md).
 * **Heap readout and guard (`Util/heap_guard.{h,cpp}`):** Show Debug prints `heap <used>K free <free>K` at the top of the effect screen: *used* is how far the heap has grown (it never shrinks, so it is also the most it has needed), *free* is what is left
   before the end of RAM_D2 (`_ram_d2_limit`, provided by `nam_a2_sections.lds`). The firmware's `_sbrk` (which replaces libnosys's unlimited one) stops at that limit: instead of running into unmapped memory it shows **OUT OF MEMORY**, what was being
   started and how much was wanted on the display, and halts. At startup, before each effect's `Init()`, the heap estimate from `effects-resource-usage.json` (the tool generates `generated/effects_heap.inc`; a chain gets the sum of its effects) is compared with what is free: an effect that is estimated not to fit gets a

@@ -33,7 +33,7 @@ The selection is kept in **`effects.config`**. The tool also generates what depe
 
 Only the chosen effects are compiled and linked, which matters for memory: global buffers in an object file can stay in the firmware even if nothing uses them. **Not every selection boots**: the pedal's
 heap (in RAM_D2) is small and unchecked, so too many large effects lock it up at start. `report` and `matrix` estimate that (and show what has been tried on the pedal); Some details and findings are in
-[`PERFORMANCE_AND_MEMORY.md`](PERFORMANCE_AND_MEMORY.md). The order of the enabled effects (the order in `effects.json`) is the order in the menu and decides the layout of the saved settings, so enabling or disabling an effect
+[`PERFORMANCE_AND_MEMORY.md`](internal/PERFORMANCE_AND_MEMORY.md). The order of the enabled effects (the order in `effects.json`) is the order in the menu and decides the layout of the saved settings, so enabling or disabling an effect
 resets the saved settings on the next boot. To add an effect, add it to `effects.json` (sources, header, class, what it needs); `pedal_setup measure` and `calibrate` update its memory figures after a build.
 
 ## Optional: Dattorro plate reverb (GPLv3)
