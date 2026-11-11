@@ -2,7 +2,7 @@
 
 This is the release note for the Spamatica fork of DaisySeedProjects by bkshepherd.
 It contains AI assisted refinements and additions to the firmware with the
-direct purpose to be more user friendly and add more effects.
+direct purpose to be more end user friendly and add more effects.
 
 ## General changes
 - Support for recent gcc versions
@@ -33,12 +33,8 @@ direct purpose to be more user friendly and add more effects.
 - **Tape Wear:** worn tape (wow and flutter, wear, hiss, dropouts) with a tape stop on the second footswitch; adapted from [terrarium-tape](https://github.com/Aalenberg/terrarium-tape) by Aalenberg.
 - **Dirty Verb:** a dark ambient reverb with multiple distortions in the process and tail.
 
-## Settings and display
-- **Global: In Gain and Out Gain:**  (-24 to +24 dB), Trails, Lock Knobs (off by default); Show Debug is now saved.
-- **Global: Show Debug readouts:** CPU percentage, averaged input and output peak levels, heap use and out-of-memory guard.
-- **Menus:** long texts fit the display (auto-fit font, `~` cut, 8x13 bold font); parameters show units and decimals.
-- **Global: Tails:** allows for effects to ring out it's tail when effect is switched off.
-- **Effect chains: Switches** (a parameter of every chain of two or more effects): the two footswitches switch two of its effects on and off (any pair of them, for a chain of any size: 2+1, 3+1, 3+2, 4+1, ..., named left to right like the footswitches), each LED showing its effect; saved with the chain's presets.
+## Effect-chains
+- Configuration of pedal-chains can now be done in `pedal_setup` which should make setting it up more approachable without needing to understand the code.
 
 ## NAM
 - Some optimizations, block processing etc.
@@ -50,6 +46,14 @@ direct purpose to be more user friendly and add more effects.
 ## Build/configuration tool (`pedal_setup`)
 - UI tool for selecting effects and NAM models.
 - **Chains** can be made in the tool and are generated into the build.
+
+## Settings and display
+- **Global: In Gain and Out Gain:**  (-24 to +24 dB), Trails, Lock Knobs (off by default); Show Debug is now saved.
+- **Global: Show Debug readouts:** CPU percentage, averaged input and output peak levels, heap use and out-of-memory guard.
+- **Menus:** long texts fit the display (auto-fit font, `~` cut, 8x13 bold font); parameters show units and decimals.
+- **Global: Tails:** allows for effects to ring out it's tail when effect is switched off.
+- **Global: Lock knobs:** Disables all potentiometers so accidentally adjusting them causes no harm. All parameters can still be reached from the rotary encoder.
+- **Effect chains: Switches** (a parameter of every chain of two or more effects): the two footswitches switch two of its effects on and off (any pair of them, for a chain of any size: 2+1, 3+1, 3+2, 4+1, ..., named left to right like the footswitches), each LED showing its effect; saved with the chain's presets.
 
 ## Documentation
 - **`GENERATE_FIRMWARE.md`:** the tool, the memory limits, the GPL opt-in and chains.

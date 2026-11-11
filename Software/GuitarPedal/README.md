@@ -8,11 +8,11 @@ For assembly and day-to-day operation of the 125B version, see the [125B user ma
 
 ## Setup
 
-For general setup see [setup](./docs/SETUP.md) document
+See [setup](./docs/SETUP.md) document
 
 ## Software Updates
 
-### Software Update - October 2026
+### Software Update - November 2026
 
 See the [release note](./ReleaseNote_v1.0.0).
 
