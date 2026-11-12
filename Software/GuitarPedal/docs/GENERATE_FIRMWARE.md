@@ -1,187 +1,77 @@
 # Generating the firmware
 
-Which effects go into the firmware, and in which order, is chosen with the effect selection tool **`./pedal_setup`** (Python 3, no packages needed; run it from this directory, any arguments are passed on to the tool). The result is stored in `effects.config`, and the tool generates the files the build needs from it, so `loaded_effects.h` and the `Makefile` are not edited by hand. This document describes the tool, the limits a selection has to stay within, and how to combine effects into chains. For the toolchain, the hardware variant and flashing, see [SETUP.md](SETUP.md#getting-started).
+Which effects go into the firmware, is chosen with the effect selection tool **`./pedal_setup`**. The result is stored in `effects.config`, and the tool generates the files the build needs from it. This document describes the tool, the limits a selection has to stay within, and how to combine effects into chains.
 
 The basic steps:
 
 1. Run `./pedal_setup` and select the effects (arrows to move, space to select, `s` to save, `h` for help), or start from a preset (`./pedal_setup preset <name>`).
-2. Build as described in [SETUP.md](SETUP.md#4-build-and-deploy-a-firmware). `make` regenerates the generated files by itself when `effects.config` or `effects.json` has changed.
+2. Build the firmware. `make` regenerates the generated files by itself when `effects.config` or `effects.json` has changed.
 3. Flash the firmware. Enabling, disabling or reordering effects changes the layout of the saved settings, which are reset on the next boot.
 
+In more detail, se below.
 
 ## The effect selection tool
 
-Running `./pedal_setup` without arguments brings up a full-screen tool in the terminal. It starts with a menu: **Configure effects** opens the effect selection, **NAM setup** lists the NAM amp models and lets you choose which are built in: the installed ones (the headers in `Effect-Modules/Nam/models/`) and the `.nam` and `.zip` files (as delivered by TONE3000) that you have put in `Effect-Modules/Nam/models_nam/` and that are not installed yet. Space selects (for a new model it first asks for the display name: the dialog lists the name in the `.nam` file and its gear model, and starts with both together, which you edit down to at most 14 characters since the display is small; `e` edits it again), `s` converts the selected new models, saves the choice in `Effect-Modules/Nam/models.config` and runs `update_models.sh --models ...`, `h` shows help; the screen has its own colours. Only A2 Nano models can be used, and a new model starts at output level 1.0 unless you answer y when `s` asks whether the volume should be calibrated too (it takes about a minute, uses the default level, +12 dB, and needs g++; the same as `Effect-Modules/Nam/update_models.sh --calibrate`). On Windows the calibration needs a native g++ (for example MSYS2's mingw-w64 gcc), which the Daisy Toolchain Installer does not include (it only has the Arm compiler): answer n, or install one and run `sh Effect-Modules/Nam/update_models.sh --calibrate` by hand from Git BASH. and **Options** opens a placeholder menu (only Back for now); `q` or Esc leaves a menu. In the effect selection the effects are listed with what each costs in memory and the status bar shows whether the selection fits and can be built. This is the easiest way to choose the effects.
+Running `./pedal_setup` without arguments brings up a full-screen tool in the terminal where you can select effects and configure which NAM modules to include (if NAM is one of the configured effects).
 
+This is the effect selection menu:
 ![The effect selection tool](effects_config.png)
 
 The selection is kept in **`effects.config`**. The tool also generates what depends on the choice:
 `generated/effects.mk` (the sources, and the sources and defines of what the chosen effects need, which the `Makefile` includes) and the effect list that `loaded_effects.h` includes.
-`make` regenerates them by itself when `effects.config` changes, so after editing the file (or running one of these) just build. The generated files are **not kept in git** (the `generated/` directory is ignored): a fresh clone gets them with its first `make`, or with `./pedal_setup generate`, and both need Python 3. If `effects.config` selects no effects (and there are no chains), there is nothing to build: `make` and `pedal_setup generate` stop with the message "No effects are selected in effects.config ... See docs/GENERATE_FIRMWARE.md", and nothing is generated; choose effects with `./pedal_setup` (or a preset) first.
+`make` regenerates them by itself when `effects.config` changes, so after editing the file (or running one of these) just build. 
 
-```text
-./pedal_setup                           # the interactive full-screen selection (curses): arrows to move, space to select, s to save, x to clear everything (no effects, no chains), h for help
-./pedal_setup observe "boots and runs" --heap-used 120 --heap-free 136   # record what the pedal showed (Show Debug) for the current selection
-./pedal_setup lint                      # parameter names and choices that are too long for the big font (the display draws them smaller; over 22 characters they would be cut)
-./pedal_setup info funbox-uranus               # what is known about an effect: origin, copyright lines in its source, who committed it, memory (key i in the interactive mode)
-./pedal_setup list                      # all effects, what is enabled, and what each costs in memory
-./pedal_setup preset uranus-only        # start from a preset (configs/*.config; "everything" enables all effects)
-./pedal_setup enable funbox-venus funbox-saturn       # enable effects (disable does the opposite)
-./pedal_setup report                    # how much of DTCM, RAM_D2 (static data + heap), code space and SDRAM the current selection needs
-./pedal_setup matrix funbox-venus funbox-jupiter ...  # the same for every combination of the named effects
-```
+`./pedal_setup` also has a number of command line arguments for instance to load predefined effect configurations.
 
-Only the chosen effects are compiled and linked, which matters for memory: global buffers in an object file can stay in the firmware even if nothing uses them. **Not every selection boots**: the pedal's
-heap (in RAM_D2) is small and unchecked, so too many large effects lock it up at start. `report` and `matrix` estimate that (and show what has been tried on the pedal); Some details and findings are in
-[`PERFORMANCE_AND_MEMORY.md`](internal/PERFORMANCE_AND_MEMORY.md). The order of the enabled effects (the order in `effects.json`) is the order in the menu and decides the layout of the saved settings, so enabling or disabling an effect
-resets the saved settings on the next boot. To add an effect, add it to `effects.json` (sources, header, class, what it needs); `pedal_setup measure` and `calibrate` update its memory figures after a build.
+The order of the enabled effects (the order in `effects.json`) also becomes the order of effects in the pedal.
 
-## Optional: Dattorro plate reverb (GPLv3)
+## NAM models
 
-`Effect-Modules/Dattorro/` contains a Dattorro (1997) plate reverb, in the same family used by
-the Hothouse "Flick" and "MuleBox" pedals. It's disabled by default (not in any preset, and the tool refuses it without `ALLOW_GPL=y`), because that code is licensed **GPL-3.0-or-later**, not MIT
-like the rest of this repository — see [`Effect-Modules/Dattorro/README.md`](../Effect-Modules/Dattorro/README.md)
-for the full provenance chain and license text. Enabling it means the firmware binary you build
-must be distributed under GPLv3 (or not distributed at all); leaving it out keeps your
-build entirely MIT.
+The name effect support NAM A2 Lite models. To include a model, place the `.nam` or `.zip` file in `Effect-Modules/Nam/models_nam/` and run the NAM configuration step in ./pedal_setup`.
 
-To opt in: set `ALLOW_GPL=y` in `effects.config` (the tool refuses to build them otherwise), enable `dattorro` (and `funbox-earth`, which is built on it) with `./pedal_setup enable dattorro funbox-earth`, then rebuild and flash.
+NAM setup lists all found models and allows to select which should be included and what name to give it. The display is small so usually the name has to be edited down.
 
-## Memory notes for the tool
+When saving (`s`) the NAM setup you will be asked if the models should be volume normalized, this is an optional step that tries to scale the models to have approximately the same volume, it requires access to a native g++ compiler and will probably not work automatically under Windows.
 
-* **Only the chosen effects are compiled**, which also stops unused global buffers from taking memory: an object file with an explicitly placed buffer, like Saturn's in `.sram_d2_bss`, keeps all of that section even when nothing uses it. `list`, `report` and `matrix` show the memory budget; `measure` and `calibrate` refresh `effects-resource-usage.json` from the last build
-  (to measure every effect: `preset everything`, `make -k`, `measure`, then `preset` the real selection and build, `calibrate`). The CloudSeed pool's size follows the number of effects that use the engine
-  (`-DCLOUDSEED_ENGINES`, 7.1 / 12.6 / 19.7 MB).
-* **Defines and stale objects:** the selection sets some compiler defines (`-DCLOUDSEED_ENGINES` for the size of the SDRAM pool, the CMSIS table defines for Venus and Saturn). make cannot see that a define changed, so a firmware built after adding a second CloudSeed effect still had the pool of one engine (7.1 MB where two need 9.8 MB):
-  the second engine's allocation failed and the pedal froze at boot (this is what happened with Jupiter + Neptune). The defines are now in `generated/defines.mk`, which every object file depends on, so a changed define rebuilds everything (and the pool reports `OUT OF MEMORY: CloudSeed pool full` instead of freezing, should it ever be too small).
+There is also a script `Effect-Modules/Nam/update_models.sh --calibrate` that performs the same procedure outside `pedal_setup`.
 
-## Adding and testing effects
+## GPLv3 effects
 
-Every converted effect has an entry in `effects.json` (what to compile, what it needs: `impulse_response` for Mars, the CloudSeed pool for Jupiter and Neptune, the CMSIS FFT tables for Venus and Saturn) and its memory figures in `effects-resource-usage.json`; **a new effect needs an entry in both.**
+Some effects are licensed under GPLv3 and require opt-in as these effects are not allowed to be distributed in binary form without the sources.
 
 ## Combining Effects (EffectChain)
 
-Chains can be made without writing any C++: in the interactive tool (`./pedal_setup`) press `c`, make a chain, add its effects, and map their parameters to knobs and MIDI CCs.
-They are stored in `chains.json`, and `pedal_setup generate` (or `s` in the tool, or `make`) turns them into `generated/effects_chains.inc`, which `loaded_effects.h` includes. The effects
-of a chain are built even if they are not selected on their own (`[c]` in the list). The tool checks what `effect_chain.cpp` warns about: an effect that keeps big buffers (the reverbs and delays, among them the ones on the CloudSeed engine: CloudSeed, Jupiter and Neptune)
-can exist only once (not also on its own, not in two chains). Only Scope cannot be a slot (it has no parameters to map). **CPU load:** the effects of a chain run one after the other, so their loads add up, and a chain that takes more than a block lasts (100%) makes the audio overrun and the menu lock up. The tool estimates the load of a chain from the CPU figures of its effects (`cpu_avg` and `cpu_peak` in `effects-resource-usage.json`, measured on the pedal one effect at a time, with default settings and mostly without a signal; the callback's own cost is counted once) and warns when it is over 100% (also when only the peak is), or close to it (from 85%): in the chain editor (each slot shows its own CPU load, the estimate is a line in it, the combined load is first in the status bar, which turns yellow from 85% and red over 100%, and the warning is shown above it), in the status bar of the selection (`chain CPU high`), in the report, and when `pedal_setup generate` runs. It is a warning, not an error: the chain can still be saved and tried, and only Show Debug on the pedal tells the real load. An effect with no CPU figure is counted as free and named in the warning, so the real load is higher. The rest of this section describes the C++ the tool writes, which you can still write by hand in `loaded_effects.h`.
+There is now support in`./pedal_setup` for creating effect chains. Press `c` in the Configure effects to begin the process. 
 
-`Effect-Modules/effect_chain.h` lets you wire two or more effects into a single chained entry in
-`loaded_effects.h`, processed serially (e.g. tremolo into reverb), without changing any of the
-effect modules themselves or the menu/UI code. For example:
+A chain has a **Switches** parameter in its menu, it allows to use both the left and right switch to turn on/off effects in the chain.  
 
-```cpp
-new EffectChain(
-    "Trem+Verb",
-    // Slots: a short (up to three characters) menu tag plus the child effect instance (owned by the chain).
-    {{"Tre", new ModulatedTremoloModule()}, {"Rev", new ReverbModule()}},
-    // Knob/MIDI CC mappings: {slot, child param id, knob (-1 = none), midi CC (-1 = none)}.
-    {{0, ModulatedTremoloModule::DEPTH, 0, 20},
-     {0, ModulatedTremoloModule::FREQ, 1, 21},
-     {1, ReverbModule::TIME, 2, 22},
-     {1, ReverbModule::DAMP, 3, 23},
-     {1, ReverbModule::MIX, 4, 24}}),
-```
+The options are named left to right, as the footswitches are on the pedal: 3+1 is slot 3 on the left footswitch and slot 1 on the right one.
 
-Every child parameter shows up in the effect's parameter menu, tagged with its slot's prefix (e.g.
-"Tre Depth", "Rev Mix") so identically-named parameters from different children stay distinct; only
-the parameters listed in the mapping array are reachable from a knob and/or MIDI CC. One slot (the
-first, by default) is the "primary" child, which owns the LED and the alternate footswitch.
+### Build and Deploy firmware
 
-Every slot also gets its own "\<tag\> On" checkbox in the menu, defaulting to on, so any slot can be
-bypassed independently. This is saved with presets exactly like any other parameter.
+#### Flash Boot loader
 
-By default the alternate footswitch just forwards to the primary child (e.g. for tap tempo).
-Pass `footswitchTogglesSlots` to repurpose it as an on-off slot for one or more children, e.g.:
+By default this project is configured to use the custom Boot Loader. To get up and running you'll need to flash the boot loader to the Daisy Seed. This only needs to be done once.
 
-```cpp
-new EffectChain(
-    "HT+Dly+Rv",
-    {{"Tre", new HarmonicTremoloModule()}, {"Del", new DelayModule()}, {"Rev", new DattorroReverbModule()}},
-    {{2, DattorroReverbModule::MIX,    0, 20},
-     {0, HarmonicTremoloModule::DEPTH, 1, 21},
-     {0, HarmonicTremoloModule::SPEED, 2, 22},
-     {1, DelayModule::DELAY_TIME,      3, 23},
-     {1, DelayModule::D_FEEDBACK,      4, 24},
-     {1, DelayModule::DELAY_MIX,       5, 25}},
-    /* primarySlot */ 1,
-    /* footswitchTogglesSlots */ {0}), // or {0,1} to toggle trem+delay together
-```
+1. Build the software with `make -j4`, confirm that `build/guitarpedal.bin` exists
+1. Put your Daisy Seed into DFU mode.
+1. From the terminal, in the GuitarPedal folder run "make program-boot"
 
-A `ChainMapping` can also target a slot's own "On" parameter instead of a child parameter, using the
-`EffectChain::SLOT_ENABLE` sentinel (e.g. `{0, EffectChain::SLOT_ENABLE, -1, 30}`), which puts that
-bypass on a MIDI CC regardless of whether the footswitch is also toggling it.
+#### Flash firmware
 
-Every chain of two or more slots also gets a **Switches** parameter in its menu, after the On checkboxes: Normal, or any two of the chain's slots (a chain of two only offers Normal and 2+1, a chain of three Normal, 2+1, 3+1 and 3+2, a chain of four also 4+1, 4+2 and 4+3, and so on: one option for every pair of slots), which puts those two slots on the left and right footswitches at runtime. The options are named left to right, as the footswitches are on the pedal: 3+1 is slot 3 on the left footswitch and slot 1 on the right one. There is no limit on the number of slots, the list only gets longer. While it is not Normal it overrides `footswitchTogglesSlots` and the alternate footswitch's other functions (see `Util/chain_switches.h` and the user manual). It is saved with the chain's presets.
+This step is redone every time you change the firmware configuration or change the source code.
 
-Turning a slot off crossfades it out over about a tenth of a second and then stops processing it
-entirely, both to avoid a click and to save CPU. Note the delay/reverb trails are not preserved.
+1. Build the software with `make -j4`, confirm that `build/guitarpedal.bin` exists
+1. Press the Reset button. The led will temporary blink for about 3 second (this is the bootloader waiting for a programming instruction).
+1. While the LED is blinking run "make program-dfu"
+1. That's it!
 
-If you want to have more than six physical knobs, give any `ChainMapping` a `knobMapping` of 6 or
-higher, and that parameter moves to a second knob bank instead of being unreachable: holding the alternate
-footswitch for a second toggles between the two banks (an on-screen "SHIFT" label shows when the
-second bank is active), and holding it again switches back. Physical knob 1 reads whatever's mapped
-to knob 0 normally, and whatever's mapped to knob 6 while shifted; knob 2 maps to 1/7, and so on
-through knob 6 mapping to 5/11. This only kicks in when a chain actually uses a `knobMapping` of 6 or
-higher somewhere — with every mapping in 0-5, holding the footswitch keeps forwarding to the primary
-child (or stays a no-op under `footswitchTogglesSlots`) exactly as before:
+If you run into trouble with the bootloader. Electro-Smith has better documentation on how to get it working here: https://github.com/daisyaudio/libDaisy/blob/master/doc/md/_a7_Getting-Started-Daisy-Bootloader.md
 
-```cpp
-new EffectChain(
-    "HT+Dly+Rv",
-    {{"Tre", new HarmonicTremoloModule()}, {"Del", new DelayModule()}, {"Rev", new DattorroReverbModule()}},
-    {{2, DattorroReverbModule::MIX,       0, 20},
-     {0, HarmonicTremoloModule::DEPTH,    1, 21},
-     {0, HarmonicTremoloModule::SPEED,    2, 22},
-     {1, DelayModule::DELAY_TIME,         3, 23},
-     {1, DelayModule::D_FEEDBACK,         4, 24},
-     {1, DelayModule::DELAY_MIX,          5, 25},
-     // Shift bank - reachable by holding the alternate footswitch for 1s.
-     {2, DattorroReverbModule::PRE_DELAY, 6, 26},
-     {2, DattorroReverbModule::DECAY,     7, 27},
-     {2, DattorroReverbModule::TONE,      8, 28},
-     {2, DattorroReverbModule::DIFFUSE,   9, 29},
-     {1, DelayModule::DELAY_LPF,          10, 30},
-     {1, DelayModule::MOD_AMT,            11, 31}},
-    /* primarySlot */ 1,
-    /* footswitchTogglesSlots */ {0}),
-```
+##### Flash to built in flash memory
 
-This isn't meant to support every combination of effects — some modules need caution, or are a poor
-fit for chaining altogether:
+If you want to use built in flash memory only, you _can_, but it severely limits which effects you can use and how many you can have installed at once. I'd recommend choosing just 1 or 2 effects (see [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md)). Then do the following to get running on internal flash:
 
-- **Single-instance-only modules.** Many modules that keep DSP buffers or other resources in a file-scope
-  global, where every *instance* of that class aliases the same memory. In practice this means you can
-  only create one instance. You can*use* the one instance more than once, e.g. in more than one effect
-  chain or in a combination of an effect chain and a standalone effect, but since they share their
-  parameters, any changes when viewing one patch affects all references.
-  
-  Modules in this category: `ReverbModule`, `DattorroReverbModule`, `DelayModule`, `TapeDelayModule`,
-  `MultiDelayModule`, `GranularDelayModule`, `SpectralDelayModule`, `SciFiModule`,
-  `PitchShifterModule`, `LooperModule`, `PluckEchoModule`, `NamA2Module`, `CloudSeedModule`,
-  `TunerModule`.
-- **Custom on-screen displays are lost.** A chain always draws its own generic name/parameter screen
-  instead of forwarding to a child's `DrawUI`, so these modules lose some or all of their custom
-  display when chained: `AutoPanModule`, `ChopperModule`, `DelayModule`, `GraphicEQModule`,
-  `LooperModule`, `MetroModule`, `ParametricEQModule`, `PitchShifterModule`, `TapeDelayModule`,
-  `TunerModule`. This doesn't stop them working, but it can be confusing.
-
-### Sharing a single-instance effect between chains
-
-A single-instance-only module (see above) can still show up in more than one chain, as long as
-it's the same object every time. Construct it once, put it in every `ChainSlot` that wants it, and
-mark every slot but one `ownsEffect = false` so only one of them deletes it:
-
-```cpp
-static DattorroReverbModule* reverb = new DattorroReverbModule();
-
-new EffectChain("HarmTremVerb",    {{"HTr", new HarmonicTremoloModule()}, {"Rev", reverb}}, ...),                    // owns it
-new EffectChain("ModTremVerb", {{"Tre", new ModulatedTremoloModule()}, {"Rev", reverb, /* ownsEffect */ false}}, ...), // reuses it
-```
-
-The two chains are then processing the exact same reverb - its parameters are shared state, not a
-copy per chain. Switching between the chains never resets or overwrites the other's settings by
-itself; only turning that shared knob, editing it in the menu, or a MIDI CC actually changes it. The
-one gap is at power-on: every chain restores its own saved values into whatever it maps parameters
-to, so whichever chain happens to come later in `effectList` decides the shared effect's values after
-a reboot - not necessarily the chain you had active when you last powered off.
+1. Remove the "APP_TYPE = BOOT_SRAM" line from the Make File:
+2. Put your Daisy Seed into DFU mode.
+3. make build-and-program-dfu
