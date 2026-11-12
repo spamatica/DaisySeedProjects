@@ -51,7 +51,7 @@ else FAILS=$((FAILS + 1)); fi
 
 step "SciFi: original ($BASE) vs new"
 mkdir -p "$B/sf_old"; base_file Effect-Modules/scifi_module.cpp > "$B/sf_old/scifi_module.cpp"; base_file Effect-Modules/scifi_module.h > "$B/sf_old/scifi_module.h"
-SFSRC="Effect-Modules/base_effect_module.cpp $REVSC $DSP/Effects/overdrive.cpp"
+SFSRC="$BASEMOD $REVSC $DSP/Effects/overdrive.cpp"
 if XFLAGS="-I$B/sf_old" build "$B/sf_old_bin" $T/test_scifi.cpp "$B/sf_old/scifi_module.cpp" $SFSRC && build "$B/sf_new_bin" $T/test_scifi.cpp Effect-Modules/scifi_module.cpp $SFSRC; then
     "$B/sf_old_bin" sample "$B/sf_old.bin"; "$B/sf_new_bin" sample "$B/sf_ps.bin"; "$B/sf_new_bin" block "$B/sf_blk.bin"
     check python3 -I $T/compare_exact.py SciFi "$B" sf_old.bin sf_ps.bin sf_blk.bin
@@ -59,15 +59,16 @@ else FAILS=$((FAILS + 1)); fi
 
 step "Tape Delay: original ($BASE) vs new"
 mkdir -p "$B/td_old"; base_file Effect-Modules/tape_delay_module.cpp > "$B/td_old/tape_delay_module.cpp"; base_file Effect-Modules/tape_delay_module.h > "$B/td_old/tape_delay_module.h"
-# The original computes the wet/dry balance from an uninitialised smoothed mix at startup and only on a Mix change (a known bug, fixed in the new code and
-# covered by test_tape_delay_defaults.cpp). Mirror the same fix into the reference so this step still checks that the refactor itself changed nothing.
+# An old baseline (BASE_REF before commit 6521366) computes the wet/dry balance from an uninitialised smoothed mix at startup and only on a Mix change (a
+# known bug, fixed in the new code and covered by test_tape_delay_defaults.cpp). Mirror the same fix into such a reference so this step still checks that
+# the refactor itself changed nothing; a baseline that already has the fix (the default, main) is left as it is.
 python3 -I - "$B/td_old/tape_delay_module.cpp" <<'PYFIX'
 import sys
 p = sys.argv[1]; s = open(p).read()
 for old, new in (("    UpdateMix();\n    ResetInternalState();\n}", "    ResetInternalState();\n    UpdateMix();\n}"),
                  ("    fonepole(m_smoothedRepeats, GetParameterAsFloat(REPEATS), 0.02f);\n", "    fonepole(m_smoothedRepeats, GetParameterAsFloat(REPEATS), 0.02f);\n    UpdateMix();\n")):
-    assert old in s, "reference patch no longer applies: " + old[:40]
-    s = s.replace(old, new, 1)
+    if old in s:
+        s = s.replace(old, new, 1)
 open(p, "w").write(s)
 PYFIX
 TDSRC="Util/tape_modulator.cpp $BASEMOD $REVSC $LGPL/Filters/tone.cpp $DSP/Filters/svf.cpp $DSP/Synthesis/oscillator.cpp"
@@ -277,7 +278,7 @@ if XFLAGS= build "$B/t_earth" $T/test_earth.cpp Effect-Modules/earth_module.cpp 
 
 step "CloudSeed: original ($BASE) vs new (bit-exact at block size 1; shipped block size checked for level/finite)"
 CSSRC="dependencies/CloudSeed/AudioLib/Biquad2.cpp dependencies/CloudSeed/AudioLib/ShaRandom.cpp dependencies/CloudSeed/AudioLib/ValueTables.cpp \
- dependencies/CloudSeed/FastSin.cpp dependencies/CloudSeed/Utils/Sha256.cpp Effect-Modules/base_effect_module.cpp"
+ dependencies/CloudSeed/FastSin.cpp dependencies/CloudSeed/Utils/Sha256.cpp Effect-Modules/cloudseed_pool.cpp $BASEMOD" # the engine allocates from the pool, the base module uses heap_guard
 rm -rf "$B/cs_old" "$B/cs_n1"; mkdir -p "$B/cs_old/Effect-Modules" "$B/cs_old/dependencies" "$B/cs_n1/Effect-Modules" "$B/cs_n1/dependencies"
 base_file Effect-Modules/cloudseed_module.cpp > "$B/cs_old/Effect-Modules/cloudseed_module.cpp"
 base_file Effect-Modules/cloudseed_module.h > "$B/cs_old/Effect-Modules/cloudseed_module.h"
@@ -287,14 +288,14 @@ cp Effect-Modules/cloudseed_module.cpp Effect-Modules/cloudseed_module.h Effect-
 cp -r dependencies/CloudSeed "$B/cs_n1/dependencies/CloudSeed"; rm -rf "$B/cs_n1/dependencies/CloudSeed/build"
 sed -i 's/static const int bufferSize = [0-9]*;/static const int bufferSize = 1;/' "$B/cs_n1/dependencies/CloudSeed/ReverbController.h"
 if XFLAGS="-I$B/cs_old/Effect-Modules -I$B/cs_old/dependencies/CloudSeed" build "$B/cs_old_bin" $T/test_cloudseed.cpp "$B/cs_old/Effect-Modules/cloudseed_module.cpp" $CSSRC \
-   && XFLAGS="-I$B/cs_n1/Effect-Modules -I$B/cs_n1/dependencies/CloudSeed" build "$B/cs_n1_bin" $T/test_cloudseed.cpp "$B/cs_n1/Effect-Modules/cloudseed_module.cpp" Effect-Modules/cloudseed_pool.cpp $CSSRC \
-   && XFLAGS="-Idependencies/CloudSeed" build "$B/cs_new_bin" $T/test_cloudseed.cpp Effect-Modules/cloudseed_module.cpp Effect-Modules/cloudseed_pool.cpp $CSSRC; then
+   && XFLAGS="-I$B/cs_n1/Effect-Modules -I$B/cs_n1/dependencies/CloudSeed" build "$B/cs_n1_bin" $T/test_cloudseed.cpp "$B/cs_n1/Effect-Modules/cloudseed_module.cpp" $CSSRC \
+   && XFLAGS="-Idependencies/CloudSeed" build "$B/cs_new_bin" $T/test_cloudseed.cpp Effect-Modules/cloudseed_module.cpp $CSSRC; then
     "$B/cs_old_bin" sample "$B/cs_old.bin"; "$B/cs_n1_bin" block "$B/cs_n1.bin"; "$B/cs_new_bin" block "$B/cs_new.bin"
     check python3 -I $T/compare_cloudseed.py "$B"
 else FAILS=$((FAILS + 1)); fi
 
 step "CloudSeed: the wet-only LED pulses on a sine curve, once per half second"
-if XFLAGS="-Idependencies/CloudSeed" build "$B/t_cs_led" $T/test_cloudseed_led.cpp Effect-Modules/cloudseed_module.cpp Effect-Modules/cloudseed_pool.cpp $CSSRC Util/audio_utilities.cpp Util/heap_guard.cpp; then
+if XFLAGS="-Idependencies/CloudSeed" build "$B/t_cs_led" $T/test_cloudseed_led.cpp Effect-Modules/cloudseed_module.cpp $CSSRC; then
     for mode in block sample; do check "$B/t_cs_led" $mode; done
 else FAILS=$((FAILS + 1)); fi
 
