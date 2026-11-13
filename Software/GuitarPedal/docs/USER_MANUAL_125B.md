@@ -6,7 +6,7 @@ This is a DIY pedal project, not a finished product. You build the PCB-based har
 
 - Follow the [125B hardware build guide](../../../Hardware/GuitarPedal125b/docs/README.md) for PCB manufacture, parts, assembly, and enclosure details. The guide includes ready-to-order board files and describes the additional parts and soldering required.
 - Install the toolchain and dependencies, then follow the [software build and deployment instructions](../README.md#4-build-and-deploy-the-code). The 125B is the default hardware target; check `guitar_pedal.cpp` if you have changed variants.
-- Choose the installed effects and their order with `./pedal_setup`, as described in [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md), then build and flash, per the instruction in [SETUP.md](SETUP.md).
+- Choose the installed effects and their order with `./pedal_setup`, as described in [GENERATE_AND_DEPLOY_FIRMWARE.md](GENERATE_AND_DEPLOY_FIRMWARE.md), then build and flash, per the instruction in [SETUP.md](SETUP.md).
 
 ## Effect Chains
 

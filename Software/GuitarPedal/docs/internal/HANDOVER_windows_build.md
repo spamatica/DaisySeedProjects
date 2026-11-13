@@ -14,7 +14,7 @@ note is the review; the `.bat`, the code changes and the documentation have **no
 ## 1. What a Windows user has to work with
 
 * The firmware builds with `make` and `arm-none-eabi-gcc`; the effects are chosen with `./pedal_setup`, a bash script that starts `tools/effects.py` with `python3` [repo].
-* The docs do not mention Windows at all: not in `README.md`, `docs/SETUP.md`, `docs/GENERATE_FIRMWARE.md` or `docs/USER_MANUAL_125B.md` [repo]. `docs/SETUP.md` step 1 only links to
+* The docs do not mention Windows at all: not in `README.md`, `docs/SETUP.md`, `docs/GENERATE_AND_DEPLOY_FIRMWARE.md` or `docs/USER_MANUAL_125B.md` [repo]. `docs/SETUP.md` step 1 only links to
   Electro-Smith's C++ development environment tutorial.
 * Electro-Smith's own Windows route [Daisy docs]: install **Git for Windows** (it provides **Git BASH**), then the **Daisy Toolchain Installer** (`DaisyToolchain-1.1.0-win64.exe`),
   and use **Git BASH** as the terminal; a Python that is **not** the Microsoft Store one, started as `python` (their page says `py` may work but their scripts expect `python`);
@@ -79,7 +79,7 @@ NAM setup would silently drop every model. The JSON files would only give noisy 
 
 * `docs/SETUP.md` step 2, the manual build of the libraries, says `cd libDaisy` (and `DaisySP`, `CloudSeed`); they are in `dependencies/`. It also has the typo "directiory".
 * `docs/SETUP.md` step 3 tells you to uncomment `#define VARIANT_...` in `guitar_pedal.cpp`; the Makefile also takes `make VARIANT=1590B` (and `AGENTS.md` says so), which is easier.
-* `docs/GENERATE_FIRMWARE.md` links to `../README.md#4-build-and-deploy-the-code`, which does not exist; the build steps are in `docs/SETUP.md` step 4.
+* `docs/GENERATE_AND_DEPLOY_FIRMWARE.md` links to `../README.md#4-build-and-deploy-the-code`, which does not exist; the build steps are in `docs/SETUP.md` step 4.
 * `.vscode/tasks.json`: `build_cloudseed` runs in `dependencies/Cloudseed`; the directory is `CloudSeed` (works on Windows and macOS, not on Linux). The tasks run `make clean; make`, which
   assumes a shell where `;` chains commands: Daisy's tutorial sets Git BASH as the VS Code terminal for this.
 * `tests/host/*.sh` and `ci/format.sh` are bash and need g++ or clang-format; they are not needed to build the firmware, and nothing says so. A Windows user who wants the host tests needs
@@ -107,7 +107,7 @@ NAM setup would silently drop every model. The JSON files would only give noisy 
 2. **`pedal_setup.bat`**, next to `pedal_setup`: `cd /d "%~dp0"`; find `py -3`, `python` or `python3` (skip the Microsoft Store stub); find Git for Windows' `sh.exe`
    (`where git`, then `..\usr\bin`) and put it on PATH for the session; check that `curses` imports, else say how to install it; run `tools\effects.py %*`; say clearly if Python is missing.
 3. **Documentation**: a "Building on Windows" section in `docs/SETUP.md` (prerequisites in order; which terminal for what; `./pedal_setup` against `pedal_setup.bat`; `.gcc_path` with a
-   Windows example; Zadig and DFU; troubleshooting from 2.6), pointers to it from `README.md` and `docs/GENERATE_FIRMWARE.md`, and the corrections of 2.7.
+   Windows example; Zadig and DFU; troubleshooting from 2.6), pointers to it from `README.md` and `docs/GENERATE_AND_DEPLOY_FIRMWARE.md`, and the corrections of 2.7.
 
 ## 5. What to try on the Windows computer (and what to write down)
 
@@ -137,5 +137,5 @@ In this order; note for each step what happened, with the exact error text.
 * Tried in a Windows VM with Git for Windows and the Daisy toolchain: `make` builds the firmware in Git BASH. Flashing not tried yet.
 * `windows-curses` has wheels only up to Python 3.13 (the newest Python at the time had none): the tool needs 3.13, in a venv. Running `python3.13 tools\effects.py` after activating a venv uses the **system** Python, because a Windows venv has only `python.exe`: use `python` or `.venv\Scripts\python.exe`.
 * `pedal_setup.bat` (section 4, point 2) is written and works: it makes `.venv` with `windows-curses`, adds Git's `usr\bin` (for `sh`) to PATH, and started from Git BASH without arguments opens a real console window (it detects `MSYSTEM`). Pitfall met: a variable set inside a parenthesised block is not visible to `%VAR%` in the same block, so the script uses labels and `goto`.
-* **NAM level calibration does not work out of the box on Windows:** `update_models.sh --calibrate` builds a test program for the PC with g++ (`tests/host/calibrate_nam.sh`), and the Daisy Toolchain Installer only ships `arm-none-eabi-gcc`. A separate `.bat` for it was written and dropped. It is documented in `docs/GENERATE_FIRMWARE.md`: needs a native g++ (MSYS2), run by hand. Not tried with one.
+* **NAM level calibration does not work out of the box on Windows:** `update_models.sh --calibrate` builds a test program for the PC with g++ (`tests/host/calibrate_nam.sh`), and the Daisy Toolchain Installer only ships `arm-none-eabi-gcc`. A separate `.bat` for it was written and dropped. It is documented in `docs/GENERATE_AND_DEPLOY_FIRMWARE.md`: needs a native g++ (MSYS2), run by hand. Not tried with one.
 * Still open: sections 4 point 1 and 3, and the checks of section 5 not listed here.

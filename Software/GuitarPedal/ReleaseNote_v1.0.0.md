@@ -4,12 +4,18 @@ This is the release note for the Spamatica fork of DaisySeedProjects by bkshephe
 It contains AI assisted refinements and additions to the firmware with the
 direct purpose to be more end user friendly and add more effects.
 
+Not everything has been tested as it is a huge undertaking and not all necessary hardware has 
+been available, for instance midi is untested in this release.
+Still one of the goals has been to make the project more approachable without a lot of coding 
+knowledge. 
+
 ## General changes
-- Support for recent gcc versions
 - Block processing instead of per sample processing for many effects (to lower cpu usage)
 - Normalized volume levels for many effects
 - `pedal_setup` tool for configuring what effects to include in a firmware
+- Parameters have been changed to have units (e.g. ms for delay time)
 - Display text printing with auto resize of font
+- Support for recent gcc versions
 
 ## New effects
 - **FunBox ports:** Venus, Earth (GPLv3 opt-in), Jupiter, Saturn, Neptune, Uranus, Balnea, Pluto, Cassini, Mars and Mercury.
@@ -31,17 +37,18 @@ direct purpose to be more end user friendly and add more effects.
 - **Auto Filter:** an envelope filter (auto wah) with several different types.
 - **Vowel:** a vowel (formant) filter with a lot of settings.
 - **Tape Wear:** worn tape (wow and flutter, wear, hiss, dropouts) with a tape stop on the second footswitch; adapted from [terrarium-tape](https://github.com/Aalenberg/terrarium-tape) by Aalenberg.
-- **Dirty Verb:** a dark ambient reverb with multiple distortions in the process and tail.
+- **Dirty Verb:** a dark ambient reverb with multiple distortions in the process loop and tail.
 
 ## Effect-chains
-- Configuration of pedal-chains can now be done in `pedal_setup` which should make setting it up more approachable without needing to understand the code.
+- Configuration of pedal-chains can now be done in `pedal_setup` which should make setting it easier 
+  without needing to understand the code.
 
 ## NAM
 - Some optimizations, block processing etc.
 - Reworked inclusion of models to make it easier to add models from tone3000. Models can now be
-  dropped (even zip files) in the folder `Effect-Modules/Nam/models/` and be included with `pedal_setup`
-- Automatic level calibration if a c++ compiler is available for `pedal_setup` (might not be the case under
-  Windows).
+  dropped (even zip files) in the folder `Effect-Modules/Nam/models_nam/` and be included with `pedal_setup`
+- Automatic level calibration if a c++ compiler is available for `pedal_setup` (might not be the 
+  case under Windows).
 
 ## Build/configuration tool (`pedal_setup`)
 - UI tool for selecting effects and NAM models.
@@ -56,7 +63,7 @@ direct purpose to be more end user friendly and add more effects.
 - **Effect chains: Switches** (a parameter of every chain of two or more effects): the two footswitches switch two of its effects on and off (any pair of them, for a chain of any size: 2+1, 3+1, 3+2, 4+1, ..., named left to right like the footswitches), each LED showing its effect; saved with the chain's presets.
 
 ## Documentation
-- **`GENERATE_FIRMWARE.md`:** the tool, the memory limits, the GPL opt-in and chains.
+- **`GENERATE_AND_DEPLOY_FIRMWARE.md`:** the tool, the memory limits, the GPL opt-in and chains.
 - **`docs/internal/SECOND_FOOTSWITCH_AND_LED.md`:** how every effect uses the second footswitch and LED, and open points.
 - **`docs/internal/PERFORMANCE_AND_MEMORY.md`** section 9: CPU load measured on the pedal and what it means for chains.
 - **User manual:** no default firmware, all settings listed, three-tap tempo.

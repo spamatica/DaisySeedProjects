@@ -25,8 +25,10 @@ def make_root(path):
     """A copy of the tool's inputs in a temporary directory (the sources are linked): uranus alone selected, no chains."""
     for name in ("effects.json", "effects-resource-usage.json"):
         shutil.copy(os.path.join(fx.ROOT, name), os.path.join(path, name))
-    for name in ("Effect-Modules", "configs"):
-        os.symlink(os.path.join(fx.ROOT, name), os.path.join(path, name))
+    os.symlink(os.path.join(fx.ROOT, "Effect-Modules"), os.path.join(path, "Effect-Modules"))
+    os.mkdir(os.path.join(path, "configs"))  # a preset of the test's own (the project's presets are not needed)
+    with open(os.path.join(path, "configs", "uranus-only.config"), "w") as f:
+        f.write("ALLOW_GPL=n\nfunbox-uranus=y\n")
     with open(os.path.join(path, "effects.config"), "w") as f:
         f.write("ALLOW_GPL=n\nfunbox-uranus=y\n")
     with open(os.path.join(path, "chains.json"), "w") as f:
@@ -203,14 +205,15 @@ class SelectorTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         make_root(self.tmp.name)
-        self.saved = (fx.CONFIG, fx.GEN, fx.CHAINS)
+        self.saved = (fx.CONFIG, fx.GEN, fx.CHAINS, fx.PRESETS)
         fx.CONFIG = os.path.join(self.tmp.name, "effects.config")
+        fx.PRESETS = os.path.join(self.tmp.name, "configs")
         fx.GEN = os.path.join(self.tmp.name, "generated")
         fx.CHAINS = os.path.join(self.tmp.name, "chains.json")
         self.sel = tui.Selector(fx)
 
     def tearDown(self):
-        fx.CONFIG, fx.GEN, fx.CHAINS = self.saved
+        fx.CONFIG, fx.GEN, fx.CHAINS, fx.PRESETS = self.saved
         self.tmp.cleanup()
 
     def index(self, effect_id):
@@ -400,7 +403,7 @@ class NoEffectsTest(unittest.TestCase):
         text = str(raised.exception)
         self.assertIn("No effects are selected", text)
         self.assertIn("./pedal_setup", text)
-        self.assertIn("docs/GENERATE_FIRMWARE.md", text)
+        self.assertIn("docs/GENERATE_AND_DEPLOY_FIRMWARE.md", text)
         self.assertFalse(os.path.exists(fx.GEN), "nothing is generated for an empty selection")
 
     def test_without_strict_it_is_a_warning_and_nothing_is_written(self):
@@ -423,7 +426,7 @@ class NoEffectsTest(unittest.TestCase):
         env = dict(os.environ, EFFECTS_TOOL_ROOT=self.tmp.name)
         done = subprocess.run([sys.executable, os.path.join(HERE, "effects.py"), "generate"], capture_output=True, text=True, env=env)
         self.assertNotEqual(done.returncode, 0)  # so make stops
-        self.assertIn("docs/GENERATE_FIRMWARE.md", done.stderr)
+        self.assertIn("docs/GENERATE_AND_DEPLOY_FIRMWARE.md", done.stderr)
         self.assertNotIn("Traceback", done.stderr)  # a message, not a stack trace
         self.assertFalse(os.path.exists(os.path.join(self.tmp.name, "generated")))
         # disabling the last effect is fine, only a warning: the configuration is what the user asked for

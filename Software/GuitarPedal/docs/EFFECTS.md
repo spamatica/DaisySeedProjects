@@ -1,6 +1,6 @@
 # Effects
 
-These are the effects that can be included in a firmware; which of them your pedal has depends on how you generated it (see [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md)). The effects are named as they appear in the pedal's effect list. Their exact controls and knob assignments can change with the build: the effect parameter menu lists the controls available in your version.
+These are the effects that can be included in a firmware; which of them your pedal has depends on how you generated it (see [GENERATE_AND_DEPLOY_FIRMWARE.md](GENERATE_AND_DEPLOY_FIRMWARE.md)). The effects are named as they appear in the pedal's effect list. Their exact controls and knob assignments can change with the build: the effect parameter menu lists the controls available in your version.
 
 Each effect below has a short description, where it comes from when that is known, and a list of its parameters. "Knob N" is the knob the parameter is on by default; "menu only" parameters are reached through the parameter menu. Ranges and defaults are the values the display shows.
 

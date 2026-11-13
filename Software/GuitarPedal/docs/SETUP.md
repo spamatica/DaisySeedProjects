@@ -94,7 +94,7 @@ and so on for the other possible options...
 
 ### 4. Build and Deploy a firmware
 
-See [GENERATE_FIRMWARE.md](GENERATE_FIRMWARE.md) for how to generate the firmware configuration and flash it onto your hardware. 
+See [GENERATE_AND_DEPLOY_FIRMWARE.md](GENERATE_AND_DEPLOY_FIRMWARE.md) for how to generate the firmware configuration and flash it onto your hardware. 
 
 ### 5. Connect your Guitar and Amp
 

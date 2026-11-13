@@ -9,7 +9,7 @@ Selects which effects are built into the firmware, generates the parts of the bu
   effects-resource-usage.json   what each effect costs in memory (measured from the object files, plus heap figures that are estimates)
   generated/            what `generate` writes: effects.mk (included by the Makefile), effects_includes.inc and effects_instances.inc (included by loaded_effects.h)
 
-Commands:  tui (the default in a terminal) | list | info ID... | lint | observe RESULT | preset NAME | enable ID... | disable ID... | generate | report | measure | calibrate | matrix [ID...]
+Commands:  tui (the default in a terminal) | list | info ID... | lint | observe RESULT | preset NAME [CHAINS] | enable ID... | disable ID... | generate | report | measure | calibrate | matrix [ID...]
 See docs/internal/PERFORMANCE_AND_MEMORY.md for what the figures mean and where they come from.
 """
 import argparse
@@ -124,7 +124,7 @@ def write_if_changed(path, text):
 
 
 NO_EFFECTS = ("No effects are selected in effects.config, so there is nothing to build. Choose the effects first: run ./pedal_setup (or `./pedal_setup preset <name>`, "
-              "or `./pedal_setup enable <id>`), or edit effects.config by hand. See docs/GENERATE_FIRMWARE.md.")
+              "or `./pedal_setup enable <id>`), or edit effects.config by hand. See docs/GENERATE_AND_DEPLOY_FIRMWARE.md.")
 
 
 def generate(quiet=False, strict=False):
@@ -846,8 +846,16 @@ def cmd_preset(args):
     elif os.path.exists(path):
         enabled, options = read_config(path)
     else:
-        sys.exit("no such preset: %s (presets: %s)" % (args.name, ", ".join(sorted(f[:-7] for f in os.listdir(PRESETS) if f.endswith(".config")) + ["everything"])))
+        sys.exit("no such preset: %s (presets: %s)" % (args.name, ", ".join(sorted(f[:-7] for f in (os.listdir(PRESETS) if os.path.isdir(PRESETS) else []) if f.endswith(".config")) + ["everything"])))
+    chains = None
+    if args.chains:  # a chain config: configs/<chains>.chains.json, same format as chains.json; replaces the chains of chains.json
+        cpath = os.path.join(PRESETS, args.chains + ".chains.json")
+        if not os.path.exists(cpath):
+            sys.exit("no such chain config: %s (chain configs: %s)" % (args.chains, ", ".join(sorted(f[:-12] for f in (os.listdir(PRESETS) if os.path.isdir(PRESETS) else []) if f.endswith(".chains.json"))) or "none"))
+        chains = read_chains(cpath)
     write_config(enabled, options, m)
+    if chains is not None:
+        write_chains(chains)
     generate()
 
 
@@ -864,7 +872,8 @@ def main():
     sub.add_parser("list")
     sub.add_parser("lint", help="parameter names and choices that are too long for the display (drawn smaller, or cut)")
     s = sub.add_parser("info", help="what is known about an effect: origin, copyright lines, who committed it, memory"); s.add_argument("ids", nargs="+")
-    s = sub.add_parser("preset"); s.add_argument("name")
+    s = sub.add_parser("preset", help="replace the selection with configs/NAME.config (or everything); with CHAINS also the chains with configs/CHAINS.chains.json")
+    s.add_argument("name"); s.add_argument("chains", nargs="?")
     s = sub.add_parser("enable"); s.add_argument("ids", nargs="+")
     s = sub.add_parser("disable"); s.add_argument("ids", nargs="+")
     sub.add_parser("generate", help="write the files that the build needs (this is what make runs); fails with a message if no effects are selected")

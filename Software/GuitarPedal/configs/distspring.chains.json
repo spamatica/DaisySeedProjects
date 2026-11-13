@@ -1,0 +1,22 @@
+{
+ "_note": "Example chain config for the preset distspring: distortion followed by spring reverb as one menu entry. knob is 0-5 for the six knobs and 6-11 for the same knobs while the alternate footswitch's shift bank is on; null for none.",
+ "chains": [
+  {
+   "name": "DistSpring",
+   "slots": [
+    {"tag": "Di", "effect": "distortion"},
+    {"tag": "Sp", "effect": "spring_reverb"}
+   ],
+   "mappings": [
+    {"slot": 0, "param": "GAIN", "knob": 0, "cc": null},
+    {"slot": 0, "param": "TONE", "knob": 1, "cc": null},
+    {"slot": 0, "param": "LEVEL", "knob": 2, "cc": null},
+    {"slot": 1, "param": "DECAY", "knob": 3, "cc": null},
+    {"slot": 1, "param": "TONE", "knob": 4, "cc": null},
+    {"slot": 1, "param": "MIX", "knob": 5, "cc": null}
+   ],
+   "primary": 0,
+   "toggle": [0, 1]
+  }
+ ]
+}
